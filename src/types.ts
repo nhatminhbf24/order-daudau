@@ -13,10 +13,13 @@ export interface UploadedImage {
 export interface OrderFormData {
   zaloName: string;
   phone: string;
+  deliveryMethod: 'shop' | 'home';
+  shippingAddress: string;
   product: string;
-  printContent: string;
+  customRequest: string;
+  printContent?: string;
   deadline: string;
-  notes: string;
+  notes?: string;
   images: UploadedImage[];
 }
 
@@ -27,6 +30,9 @@ export interface SubmissionResponse {
     zaloName?: string;
     phone?: string;
     product?: string;
+    deliveryMethod?: string;
+    shippingAddress?: string;
+    customRequest?: string;
     folderUrl?: string;
     savedImages?: number;
     timestamp?: string;

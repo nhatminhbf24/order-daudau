@@ -6,7 +6,10 @@ interface OrderItem {
   id: string;
   zaloName: string;
   phone: string;
+  deliveryMethod?: string;
+  shippingAddress?: string;
   product: string;
+  customRequest?: string;
   printContent: string;
   deadline: string;
   notes: string;
@@ -44,7 +47,7 @@ async function startServer() {
   app.post('/api/submit-order', async (req, res) => {
     try {
       const { scriptUrl, ...payload } = req.body;
-      const { zaloName, phone, product, printContent, deadline, notes, images } = payload;
+      const { zaloName, phone, product, deliveryMethod, shippingAddress, customRequest, printContent, deadline, notes, images } = payload;
 
       if (!zaloName || !phone) {
         return res.status(400).json({
@@ -56,6 +59,9 @@ async function startServer() {
       const orderId = 'ORD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
       const timestamp = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
       const imagesCount = Array.isArray(images) ? images.length : 0;
+      const activeDeliveryMethod = deliveryMethod || 'Nhận hàng tại Shop';
+      const activeShippingAddress = shippingAddress || (deliveryMethod === 'Giao hàng tại nhà' ? '' : 'Nhận tại Shop');
+      const activeCustomRequest = customRequest || printContent || notes || '';
 
       // If user provided a real Google Apps Script Web App URL or fallback to default
       const cleanScriptUrl = (scriptUrl || DEFAULT_GAS_URL).trim();
@@ -84,6 +90,9 @@ async function startServer() {
               if (!gasData.data.product) gasData.data.product = product;
               if (!gasData.data.zaloName) gasData.data.zaloName = zaloName;
               if (!gasData.data.phone) gasData.data.phone = phone;
+              if (!gasData.data.deliveryMethod) gasData.data.deliveryMethod = activeDeliveryMethod;
+              if (!gasData.data.shippingAddress) gasData.data.shippingAddress = activeShippingAddress;
+              if (!gasData.data.customRequest) gasData.data.customRequest = activeCustomRequest;
             }
 
             // Save to local memory history too
@@ -91,8 +100,11 @@ async function startServer() {
               id: orderId,
               zaloName,
               phone,
+              deliveryMethod: activeDeliveryMethod,
+              shippingAddress: activeShippingAddress,
               product: product || 'Khác',
-              printContent: printContent || '',
+              customRequest: activeCustomRequest,
+              printContent: printContent || activeCustomRequest,
               deadline: deadline || 'Không gấp',
               notes: notes || '',
               imagesCount,
@@ -118,8 +130,11 @@ async function startServer() {
         id: orderId,
         zaloName,
         phone,
+        deliveryMethod: activeDeliveryMethod,
+        shippingAddress: activeShippingAddress,
         product: product || 'Khác',
-        printContent: printContent || '',
+        customRequest: activeCustomRequest,
+        printContent: printContent || activeCustomRequest,
         deadline: deadline || 'Không gấp',
         notes: notes || '',
         imagesCount,
@@ -143,6 +158,9 @@ async function startServer() {
           zaloName,
           phone,
           product,
+          deliveryMethod: activeDeliveryMethod,
+          shippingAddress: activeShippingAddress,
+          customRequest: activeCustomRequest,
           savedImages: imagesCount,
           folderUrl: isRealGasUrl ? undefined : 'https://drive.google.com/drive/folders/demo-preview-mode',
           timestamp

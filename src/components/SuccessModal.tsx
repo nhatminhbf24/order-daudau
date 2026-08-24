@@ -39,6 +39,20 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, dat
             <span className="font-semibold text-slate-800">{data.phone || '-'}</span>
           </div>
           <div className="flex justify-between items-center">
+            <span className="text-slate-500">Nhận hàng:</span>
+            <span className="font-semibold text-slate-800 text-right max-w-[180px] truncate">
+              {data.deliveryMethod || 'Nhận hàng tại Shop'}
+            </span>
+          </div>
+          {data.shippingAddress && data.shippingAddress !== 'Nhận tại Shop' && (
+            <div className="flex justify-between items-start gap-2">
+              <span className="text-slate-500 shrink-0">Địa chỉ:</span>
+              <span className="font-semibold text-slate-700 text-right line-clamp-2">
+                {data.shippingAddress}
+              </span>
+            </div>
+          )}
+          <div className="flex justify-between items-center">
             <span className="text-slate-500">Sản phẩm:</span>
             <span className="font-semibold text-pink-600 text-right max-w-[180px] truncate">{data.product || '-'}</span>
           </div>

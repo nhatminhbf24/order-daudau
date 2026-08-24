@@ -70,22 +70,25 @@ export const LiveTestLogger: React.FC<LiveTestLoggerProps> = ({ orders, onClear 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 text-xs">
               <div>
                 <span className="text-slate-400 block text-[11px]">Sản phẩm:</span>
-                <span className="font-semibold text-blue-600">{item.rawForm.product || 'Chưa chọn'}</span>
+                <span className="font-semibold text-pink-600">{item.rawForm.product || 'Chưa chọn'}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[11px]">Hình thức nhận hàng:</span>
+                <span className="font-medium text-slate-700">
+                  {item.rawForm.deliveryMethod === 'home' ? 'Giao hàng tại nhà' : 'Nhận tại Shop'}
+                  {item.rawForm.shippingAddress && item.rawForm.deliveryMethod === 'home' && (
+                    <span className="block text-[11px] text-slate-500 font-normal mt-0.5">({item.rawForm.shippingAddress})</span>
+                  )}
+                </span>
               </div>
               <div>
                 <span className="text-slate-400 block text-[11px]">Hạn nhận hàng:</span>
                 <span className="font-medium text-slate-700">{item.rawForm.deadline || 'Không gấp'}</span>
               </div>
-              {item.rawForm.printContent && (
-                <div className="sm:col-span-2 bg-blue-50/60 p-2.5 rounded-xl border border-blue-100 text-blue-950">
-                  <span className="font-semibold block text-[11px] text-blue-700">Chữ cần in:</span>
-                  <p className="italic font-medium">"{item.rawForm.printContent}"</p>
-                </div>
-              )}
-              {item.rawForm.notes && (
-                <div className="sm:col-span-2 text-slate-600 bg-slate-50 p-2.5 rounded-xl">
-                  <span className="font-semibold block text-[11px] text-slate-500">Ghi chú thiết kế:</span>
-                  <p>{item.rawForm.notes}</p>
+              {(item.rawForm.customRequest || item.rawForm.printContent || item.rawForm.notes) && (
+                <div className="sm:col-span-2 bg-pink-50/60 p-2.5 rounded-xl border border-pink-100 text-pink-950">
+                  <span className="font-semibold block text-[11px] text-pink-700">Lời chúc / Ghi chú / Yêu cầu:</span>
+                  <p className="font-medium">{item.rawForm.customRequest || item.rawForm.printContent || item.rawForm.notes}</p>
                 </div>
               )}
             </div>

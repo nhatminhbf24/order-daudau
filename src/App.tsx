@@ -42,7 +42,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100/90 text-slate-800 flex flex-col font-sans py-4 sm:py-8 px-3 sm:px-4">
+    <div className="min-h-screen bg-gradient-to-b from-rose-50/40 via-pink-50/20 to-slate-100/70 text-slate-800 flex flex-col font-sans py-4 sm:py-8 px-3 sm:px-4">
       
       {/* Main Form Content - Focused entirely on Customer */}
       <main className="flex-1 max-w-xl w-full mx-auto flex flex-col justify-center">

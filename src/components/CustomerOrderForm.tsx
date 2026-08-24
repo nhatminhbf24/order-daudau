@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Upload, X, Image as ImageIcon, Sparkles, AlertCircle, 
   Send, Loader2, ShieldCheck, Phone, User, Tag, 
-  MessageSquare, Calendar, HelpCircle, Settings, CheckCircle2
+  MessageSquare, Calendar, Settings, CheckCircle2,
+  Truck, Store, MapPin
 } from 'lucide-react';
 import { PRODUCT_CATEGORIES, DEFAULT_GAS_URL } from '../data/constants';
 import { UploadedImage, OrderFormData, SubmissionResponse } from '../types';
@@ -24,10 +25,11 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
   const [formData, setFormData] = useState({
     zaloName: '',
     phone: '',
+    deliveryMethod: 'shop' as 'shop' | 'home',
+    shippingAddress: '',
     product: '',
-    printContent: '',
+    customRequest: '',
     deadline: '',
-    notes: '',
   });
 
   const [images, setImages] = useState<UploadedImage[]>([]);
@@ -50,14 +52,18 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       if (savedDraft) {
         const parsed = JSON.parse(savedDraft);
         if (parsed && typeof parsed === 'object') {
+          // Xử lý backward compatibility nếu bản nháp cũ có printContent hoặc notes
+          const mergedRequest = parsed.customRequest || [parsed.printContent, parsed.notes].filter(Boolean).join(' - ') || '';
+
           setFormData(prev => ({
             ...prev,
             zaloName: parsed.zaloName || '',
             phone: parsed.phone || '',
+            deliveryMethod: (parsed.deliveryMethod === 'home' ? 'home' : 'shop'),
+            shippingAddress: parsed.shippingAddress || '',
             product: parsed.product || '',
-            printContent: parsed.printContent || '',
+            customRequest: mergedRequest,
             deadline: parsed.deadline || '',
-            notes: parsed.notes || '',
           }));
 
           const hasContent = Object.values(parsed).some((v: any) => typeof v === 'string' && v.trim().length > 0);
@@ -93,16 +99,27 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     }
   };
 
+  const handleDeliveryMethodChange = (method: 'shop' | 'home') => {
+    setFormData(prev => {
+      const next = { ...prev, deliveryMethod: method };
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(next));
+      } catch (err) {}
+      return next;
+    });
+  };
+
   const handleClearDraft = () => {
     try {
       localStorage.removeItem(DRAFT_STORAGE_KEY);
       setFormData({
         zaloName: '',
         phone: '',
+        deliveryMethod: 'shop',
+        shippingAddress: '',
         product: '',
-        printContent: '',
+        customRequest: '',
         deadline: '',
-        notes: '',
       });
       setRestoredDraft(false);
       setPhoneError('');
@@ -202,12 +219,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const totalOriginalSize = images.reduce((acc, img) => acc + (img.originalSize || img.size), 0);
-  const totalCompressedSize = images.reduce((acc, img) => acc + (img.compressedSize || img.size), 0);
-  const savedPercent = totalOriginalSize > 0 && totalCompressedSize < totalOriginalSize 
-    ? Math.round(((totalOriginalSize - totalCompressedSize) / totalOriginalSize) * 100)
-    : 0;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -215,6 +226,12 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
     if (!phoneRegex.test(formData.phone.trim())) {
       setPhoneError('Vui lòng nhập đúng số điện thoại (10 chữ số)');
+      return;
+    }
+
+    // Validate address if home delivery
+    if (formData.deliveryMethod === 'home' && !formData.shippingAddress.trim()) {
+      alert('Vui lòng nhập Địa chỉ nhận hàng để Shop giao hàng tận nơi!');
       return;
     }
 
@@ -226,18 +243,37 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
     setIsSubmitting(true);
 
+    const deliveryLabel = formData.deliveryMethod === 'home' ? 'Giao hàng tại nhà' : 'Nhận hàng tại Shop';
+    const addressInfo = formData.deliveryMethod === 'home' ? formData.shippingAddress.trim() : 'Nhận tại Shop';
+
     const payload = {
       zaloName: formData.zaloName.trim(),
       phone: formData.phone.trim(),
+      deliveryMethod: deliveryLabel,
+      shippingAddress: addressInfo,
       product: formData.product,
-      printContent: formData.printContent.trim(),
+      customRequest: formData.customRequest.trim(),
+      printContent: formData.customRequest.trim(),
+      notes: (formData.deliveryMethod === 'home' ? `[Giao tận nơi: ${addressInfo}] ` : `[Nhận tại Shop] `) + formData.customRequest.trim(),
       deadline: formData.deadline,
-      notes: formData.notes.trim(),
       images: images.map(img => ({
         name: img.name,
         type: img.type,
         base64: img.base64
       }))
+    };
+
+    const fullOrderFormData: OrderFormData = {
+      zaloName: formData.zaloName,
+      phone: formData.phone,
+      deliveryMethod: formData.deliveryMethod,
+      shippingAddress: formData.shippingAddress,
+      product: formData.product,
+      customRequest: formData.customRequest,
+      printContent: formData.customRequest,
+      notes: payload.notes,
+      deadline: formData.deadline,
+      images
     };
 
     try {
@@ -300,10 +336,11 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
         localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
           zaloName: formData.zaloName,
           phone: formData.phone,
+          deliveryMethod: formData.deliveryMethod,
+          shippingAddress: formData.shippingAddress,
           product: '',
-          printContent: formData.printContent,
+          customRequest: formData.customRequest,
           deadline: formData.deadline,
-          notes: formData.notes,
         }));
       } catch (e) {}
 
@@ -318,8 +355,11 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           product: responseData.product || formData.product,
           zaloName: responseData.zaloName || formData.zaloName,
           phone: responseData.phone || formData.phone,
+          deliveryMethod: responseData.deliveryMethod || deliveryLabel,
+          shippingAddress: responseData.shippingAddress || addressInfo,
+          customRequest: responseData.customRequest || formData.customRequest,
         };
-        onSuccess(safeData, { ...formData, images });
+        onSuccess(safeData, fullOrderFormData);
         resetForm();
       } else {
         await new Promise(r => setTimeout(r, 600));
@@ -328,9 +368,12 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           zaloName: payload.zaloName,
           phone: payload.phone,
           product: payload.product,
+          deliveryMethod: deliveryLabel,
+          shippingAddress: addressInfo,
+          customRequest: payload.customRequest,
           savedImages: finalImgCount,
           timestamp: new Date().toLocaleString('vi-VN')
-        }, { ...formData, images });
+        }, fullOrderFormData);
 
         resetForm();
       }
@@ -340,19 +383,23 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
         localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
           zaloName: formData.zaloName,
           phone: formData.phone,
+          deliveryMethod: formData.deliveryMethod,
+          shippingAddress: formData.shippingAddress,
           product: '',
-          printContent: formData.printContent,
+          customRequest: formData.customRequest,
           deadline: formData.deadline,
-          notes: formData.notes,
         }));
       } catch (e) {}
       onSuccess({
         zaloName: formData.zaloName,
         phone: formData.phone,
         product: formData.product,
+        deliveryMethod: deliveryLabel,
+        shippingAddress: addressInfo,
+        customRequest: formData.customRequest,
         savedImages: images.length > 0 ? images.length : 1,
         timestamp: new Date().toLocaleString('vi-VN')
-      }, { ...formData, images });
+      }, fullOrderFormData);
       resetForm();
     } finally {
       setIsSubmitting(false);
@@ -364,10 +411,11 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     setFormData(prev => ({
       zaloName: prev.zaloName,
       phone: prev.phone,
+      deliveryMethod: prev.deliveryMethod,
+      shippingAddress: prev.shippingAddress,
       product: '',
-      printContent: prev.printContent,
+      customRequest: prev.customRequest,
       deadline: prev.deadline,
-      notes: prev.notes,
     }));
     setRestoredDraft(false);
     setImages([]);
@@ -383,19 +431,19 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
         
         {/* Banner Top Header */}
-        <div className="bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-600 text-white p-6 sm:p-7 relative overflow-hidden">
-          <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="bg-gradient-to-r from-rose-400 via-pink-400 to-rose-400 text-white p-6 sm:p-7 relative overflow-hidden">
+          <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/15 rounded-full blur-2xl pointer-events-none"></div>
           
-          <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-2.5 border border-white/20">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+          <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-2.5 border border-white/30 text-white shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-amber-200" />
             Dâu Dâu Shop Quà Tặng In Hình
           </div>
           
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-1.5">
-            Thông Tin Đơn Hàng
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-1.5 drop-shadow-xs">
+            Gửi Nội Dung Thiết Kế
           </h2>
-          <p className="text-pink-100 text-xs sm:text-sm leading-relaxed max-w-md">
-            Gửi ảnh chất lượng cao và yêu cầu thiết kế. Shop sẽ tạo bản demo gửi qua Zalo để bạn duyệt trước khi in.
+          <p className="text-rose-50 text-xs sm:text-sm leading-relaxed max-w-md font-medium">
+            Điền đầy đủ thông tin để bộ phận thiết kế bản demo gửi qua Zalo để bạn duyệt trước khi in.
           </p>
         </div>
 
@@ -466,7 +514,73 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             )}
           </div>
 
-          {/* 3. Sản phẩm */}
+          {/* 3. Phương thức nhận hàng: Nhận tại Shop hoặc Giao hàng tại nhà */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-2">
+              <Truck className="w-4 h-4 text-pink-600" />
+              Hình thức nhận hàng <span className="text-rose-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => handleDeliveryMethodChange('shop')}
+                className={`p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
+                  formData.deliveryMethod === 'shop'
+                    ? 'border-pink-500 bg-pink-50/70 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs'
+                    : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/70 text-slate-700 font-medium'
+                }`}
+              >
+                <div className={`p-1.5 rounded-xl shrink-0 mt-0.5 ${formData.deliveryMethod === 'shop' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
+                  <Store className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs sm:text-sm">Nhận tại Shop</div>
+                  <div className="text-[11px] text-slate-400 font-normal mt-0.5">Đến trực tiếp lấy</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDeliveryMethodChange('home')}
+                className={`p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
+                  formData.deliveryMethod === 'home'
+                    ? 'border-pink-500 bg-pink-50/70 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs'
+                    : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/70 text-slate-700 font-medium'
+                }`}
+              >
+                <div className={`p-1.5 rounded-xl shrink-0 mt-0.5 ${formData.deliveryMethod === 'home' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
+                  <Truck className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs sm:text-sm">Giao hàng tại nhà</div>
+                  <div className="text-[11px] text-slate-400 font-normal mt-0.5">Ship tận nơi toàn quốc</div>
+                </div>
+              </button>
+            </div>
+
+            {/* Nếu chọn Giao hàng tại nhà -> Nhập địa chỉ giao hàng */}
+            {formData.deliveryMethod === 'home' && (
+              <div className="mt-3 animate-in fade-in slide-in-from-top-1">
+                <label htmlFor="shippingAddress" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
+                  <MapPin className="w-4 h-4 text-pink-600" />
+                  Địa chỉ giao hàng <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="shippingAddress"
+                  name="shippingAddress"
+                  required={formData.deliveryMethod === 'home'}
+                  value={formData.shippingAddress}
+                  onChange={handleInputChange}
+                  placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">Shipper sẽ giao quà đến tận tay bạn theo địa chỉ này</p>
+              </div>
+            )}
+          </div>
+
+          {/* 4. Sản phẩm */}
           <div>
             <label htmlFor="product" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
               <Tag className="w-4 h-4 text-pink-600" />
@@ -489,25 +603,27 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             </select>
           </div>
 
-          {/* 4. Chữ cần in */}
+          {/* 5. Gộp trường: Lời chúc/Ghi chú/Yêu cầu chỉnh sửa ảnh */}
           <div>
-            <label htmlFor="printContent" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
+            <label htmlFor="customRequest" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
               <MessageSquare className="w-4 h-4 text-pink-600" />
-              Nội dung chữ / Lời chúc cần in lên sản phẩm
+              Lời chúc / Ghi chú / Yêu cầu chỉnh sửa ảnh
             </label>
-            <input 
-              type="text" 
-              id="printContent" 
-              name="printContent" 
-              value={formData.printContent}
+            <textarea 
+              id="customRequest" 
+              name="customRequest" 
+              rows={3}
+              value={formData.customRequest}
               onChange={handleInputChange}
-              placeholder="VD: 'Chúc mừng sinh nhật Mai Anh 20/10' hoặc 'Best Dad Ever'"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
+              placeholder="VD: 'Chúc mừng sinh nhật Mai Anh 20/10' | Cắt nền trắng, ghép ảnh thành hình trái tim, làm sáng da, gửi sớm giúp mình..."
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400 resize-none"
             />
-            <p className="text-[11px] text-slate-400 mt-1">Để trống nếu bạn chỉ in hình ảnh</p>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Nhập nội dung chữ muốn in kèm (nếu có) và ghi chú các yêu cầu thiết kế cho Shop
+            </p>
           </div>
 
-          {/* 5. Hạn chót cần hàng */}
+          {/* 6. Hạn chót cần hàng */}
           <div>
             <label htmlFor="deadline" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
               <Calendar className="w-4 h-4 text-pink-600" />
@@ -523,23 +639,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
             />
             <p className="text-[11px] text-slate-400 mt-1">Shop sẽ chủ động sắp xếp lịch in gia công kịp ngày cho bạn</p>
-          </div>
-
-          {/* 6. Ghi chú thiết kế */}
-          <div>
-            <label htmlFor="notes" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
-              <HelpCircle className="w-4 h-4 text-pink-600" />
-              Ghi chú thêm & Yêu cầu chỉnh sửa ảnh
-            </label>
-            <textarea 
-              id="notes" 
-              name="notes" 
-              rows={2}
-              value={formData.notes}
-              onChange={handleInputChange}
-              placeholder="VD: Cắt nền trắng giùm em, làm sáng da, ghép 3 ảnh thành hình trái tim..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400 resize-none"
-            />
           </div>
 
           {/* 7. Mục tải ảnh gốc */}
@@ -558,7 +657,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             <div className="flex items-start gap-2.5 p-3 bg-amber-50/90 border border-amber-200/80 rounded-xl text-xs text-amber-900 mb-3 leading-relaxed">
               <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold text-amber-950">Lưu ý chất lượng ảnh:</span> Nên chọn <strong>ảnh gốc sắc nét (HD)</strong> từ máy ảnh/điện thoại. Hạn chế dùng ảnh chụp màn hình để thành phẩm in ra đẹp và rõ nét nhất.
+                <span className="font-bold text-amber-950">Lưu ý:</span> Nên chọn <strong>ảnh gốc sắc nét (HD)</strong> từ điện thoại (Hạn chế dùng ảnh chụp màn hình).
               </div>
             </div>
 
@@ -590,10 +689,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                 <div className="flex flex-col items-center justify-center py-1">
                   <Loader2 className="w-8 h-8 text-pink-600 animate-spin mb-2" />
                   <p className="text-xs sm:text-sm font-bold text-slate-800">
-                    Đang tối ưu ảnh chuẩn in A4 (300 DPI)...
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    Đang nén dung lượng để gửi siêu nhanh...
+                    Đang tải và tối ưu ảnh...
                   </p>
                 </div>
               ) : (
@@ -601,11 +697,8 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                   <div className="w-12 h-12 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
                     <Upload className="w-6 h-6" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-800 mb-0.5">
-                    Bấm để chọn ảnh hoặc kéo thả vào đây
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    Hỗ trợ JPG, PNG, HEIC, WEBP (Tự động nén tối ưu A4 khi tải)
+                  <p className="text-sm font-semibold text-slate-800">
+                    Bấm để chọn ảnh
                   </p>
                 </>
               )}
@@ -646,7 +739,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             <button 
               type="submit" 
               disabled={isSubmitting || isOptimizingImages}
-              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-600 hover:from-rose-600 hover:to-indigo-700 text-white font-bold text-sm sm:text-base shadow-lg shadow-pink-500/25 hover:shadow-pink-500/35 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-rose-400 via-pink-400 to-rose-400 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-sm sm:text-base shadow-md shadow-rose-300/30 hover:shadow-lg hover:shadow-rose-400/40 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>

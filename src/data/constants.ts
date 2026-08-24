@@ -1,14 +1,18 @@
 export const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwszC_NVU_4XAU7XiwtAlSdLBRZWpDHHS-iURDsACZUyD-qhsQlqwPwk6Goa8BgKOP3/exec';
 
 export const PRODUCT_CATEGORIES = [
-  { id: 'cup', name: '☕ Ly sứ in hình / Ly đổi màu ma thuật', icon: 'Coffee', desc: 'Ly trắng, ly lòng màu, ly cảm ứng nhiệt' },
-  { id: 'keychain', name: '🔑 Móc khóa mica / Móc khóa gỗ khắc laser', icon: 'Key', desc: 'Mica trong 2 mặt, gỗ sồi khắc tên' },
-  { id: 'tshirt', name: '👕 Áo thun in ảnh theo yêu cầu / Áo đôi', icon: 'Shirt', desc: 'Cotton 100%, in chuyển nhiệt/DTG cao cấp' },
-  { id: 'clock', name: '⏰ Đồng hồ gỗ để bàn / Đồng hồ tráng gương', icon: 'Clock', desc: 'Đồng hồ kim trôi cao cấp in ảnh sắc nét' },
-  { id: 'crystal', name: '💎 Khối pha lê 3D / Đế gỗ phát sáng LED', icon: 'Gem', desc: 'Pha lê K9 điêu khắc laser 3D' },
-  { id: 'photo', name: '🖼️ In ảnh kỷ niệm / Album / Khung ảnh treo tường', icon: 'Image', desc: 'Ảnh polaroid, ảnh ép gỗ lụa tráng gương' },
-  { id: 'sticker', name: '🏷️ Nhãn vở học sinh / Sticker tên chống nước', icon: 'Tag', desc: 'Decal nhựa vinyl cán bóng chống trầy' },
-  { id: 'other', name: '✨ Sản phẩm quà tặng khác theo yêu cầu', icon: 'Sparkles', desc: 'Bình giữ nhiệt, tranh ghép, gối in hình...' },
+  { id: 'cup', name: '☕ Ly sứ', icon: 'Coffee', desc: 'Ly sứ trắng, ly lòng màu, ly đổi màu' },
+  { id: 'keychain', name: '🔑 Móc khóa', icon: 'Key', desc: 'Móc khóa mica, móc khóa gỗ, kim loại' },
+  { id: 'badge', name: '🎖️ Huy hiệu', icon: 'Award', desc: 'Huy hiệu cài áo, pin cài balo, nón' },
+  { id: 'clock', name: '⏰ Đồng hồ', icon: 'Clock', desc: 'Đồng hồ để bàn, đồng hồ treo tường tráng gương' },
+  { id: 'tshirt', name: '👕 Áo thun', icon: 'Shirt', desc: 'Áo thun in hình theo yêu cầu, áo đôi' },
+  { id: 'thermos', name: '🥤 Bình giữ nhiệt', icon: 'CupSoda', desc: 'Bình giữ nhiệt in khắc hình & tên' },
+  { id: 'stone_painting', name: '🪨 Tranh đá', icon: 'Image', desc: 'Tranh in trên đá tự nhiên nghệ thuật' },
+  { id: 'puzzle', name: '🧩 Tranh ghép', icon: 'Puzzle', desc: 'Tranh xếp hình puzzle kỷ niệm' },
+  { id: 'totebag', name: '👜 Túi vải', icon: 'ShoppingBag', desc: 'Túi vải canvas, túi tote in hình' },
+  { id: 'crystal', name: '🏆 Kỷ niệm chương / Pha lê', icon: 'Gem', desc: 'Pha lê 3D, cúp lưu niệm' },
+  { id: 'album', name: '🖼️ In ảnh kỷ niệm / Album', icon: 'Image', desc: 'In ảnh polaroid, photobook, khung ảnh' },
+  { id: 'other', name: '✨ Sản phẩm khác theo yêu cầu', icon: 'Sparkles', desc: 'Gia công in ấn quà tặng theo yêu cầu riêng' },
 ];
 
 export const GAS_CODE_TEMPLATE = `/**
@@ -54,10 +58,13 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
     const zaloName = (data.zaloName || "Khách Vô Danh").trim();
     const phone = (data.phone || "").trim();
+    const deliveryMethod = (data.deliveryMethod || "Nhận hàng tại Shop").trim();
+    const shippingAddress = (data.shippingAddress || "Nhận tại Shop").trim();
     const product = (data.product || "Khác").trim();
-    const printContent = (data.printContent || "").trim();
+    const customRequest = (data.customRequest || data.printContent || data.notes || "").trim();
+    const printContent = customRequest;
     const deadline = (data.deadline || "Không yêu cầu").trim();
-    const notes = (data.notes || "").trim();
+    const notes = (deliveryMethod === "Giao hàng tại nhà" ? "[Giao tại nhà: " + shippingAddress + "] " : "[Nhận tại Shop] ") + customRequest;
     const images = Array.isArray(data.images) ? data.images : [];
 
     // Kiểm tra dữ liệu bắt buộc
