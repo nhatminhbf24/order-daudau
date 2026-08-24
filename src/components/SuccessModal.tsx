@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, MessageCircle, RefreshCw, FolderCheck, ExternalLink, Image } from 'lucide-react';
+import { CheckCircle2, RefreshCw, Image } from 'lucide-react';
 import { SubmissionResponse } from '../types';
 
 interface SuccessModalProps {
@@ -40,7 +40,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, dat
           </div>
           <div className="flex justify-between items-center">
             <span className="text-slate-500">Sản phẩm:</span>
-            <span className="font-semibold text-blue-600 text-right max-w-[180px] truncate">{data.product || '-'}</span>
+            <span className="font-semibold text-pink-600 text-right max-w-[180px] truncate">{data.product || '-'}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-slate-500">Số lượng ảnh:</span>
@@ -58,24 +58,11 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, dat
         </div>
 
         {/* Buttons */}
-        <div className="space-y-2">
-          {data.folderUrl && data.folderUrl.includes('drive.google.com') && (
-            <a 
-              href={data.folderUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full py-2.5 px-4 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <FolderCheck className="w-4 h-4" />
-              Xem thư mục Drive đơn hàng
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
-
+        <div>
           <button 
             type="button"
             onClick={onClose}
-            className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-xs sm:text-sm transition-colors flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-600 hover:from-rose-600 hover:to-indigo-700 text-white font-semibold rounded-xl text-xs sm:text-sm shadow-md shadow-pink-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" />
             Gửi Thêm Đơn Hàng Mới

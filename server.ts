@@ -16,6 +16,9 @@ interface OrderItem {
   status: string;
 }
 
+// Default Google Apps Script URL for Dâu Dâu Shop
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwszC_NVU_4XAU7XiwtAlSdLBRZWpDHHS-iURDsACZUyD-qhsQlqwPwk6Goa8BgKOP3/exec';
+
 // In-memory order storage for preview & local logging
 const inMemoryOrders: OrderItem[] = [];
 
@@ -54,8 +57,8 @@ async function startServer() {
       const timestamp = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
       const imagesCount = Array.isArray(images) ? images.length : 0;
 
-      // If user provided a real Google Apps Script Web App URL, forward request via Node server
-      const cleanScriptUrl = (scriptUrl || '').trim();
+      // If user provided a real Google Apps Script Web App URL or fallback to default
+      const cleanScriptUrl = (scriptUrl || DEFAULT_GAS_URL).trim();
       const isRealGasUrl = cleanScriptUrl.startsWith('https://script.google.com/macros/s/') && 
                            cleanScriptUrl.endsWith('/exec');
 

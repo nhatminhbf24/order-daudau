@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dâu Dâu Shop Quà Tặng In Hình - Đặt Hàng & Gửi Ảnh</title>
+  <title>Gửi Yêu Cầu In Quà Tặng Cá Nhân Hóa - Zalo Order</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -40,7 +40,7 @@
 
   <!-- ======================= CẤU HÌNH WEBAPP ======================= -->
   <script>
-    // ĐƯỜNG DẪN WEB APP GOOGLE APPS SCRIPT CỦA DÂU DÂU SHOP
+    // DÁN ĐƯỜNG DẪN WEB APP TỪ GOOGLE APPS SCRIPT VÀO ĐÂY SAU KHI DEPLOY
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwszC_NVU_4XAU7XiwtAlSdLBRZWpDHHS-iURDsACZUyD-qhsQlqwPwk6Goa8BgKOP3/exec";
   </script>
   <!-- =============================================================== -->
@@ -193,7 +193,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <div>
-              <span class="font-bold">Lưu ý về chất lượng ảnh:</span> Nên chọn <strong>ảnh gốc sắc nét (HD)</strong> từ máy ảnh/điện thoại. Tránh dùng ảnh chụp màn hình hoặc ảnh tải lại nhiều lần qua mạng xã hội để sản phẩm in ra đẹp và rõ nét nhất.
+              <span class="font-bold">Lưu ý chất lượng ảnh:</span> Nên chọn <strong>ảnh gốc sắc nét (HD)</strong> từ máy ảnh/điện thoại. Hạn chế dùng ảnh chụp màn hình để thành phẩm in ra đẹp và rõ nét nhất.
             </div>
           </div>
 
@@ -249,14 +249,27 @@
     </div>
 
     <!-- Security & Trust note -->
-    <div class="text-center mt-6 text-xs text-slate-500 space-y-1">
+    <div class="text-center mt-6 text-xs text-slate-500 space-y-1.5">
       <p class="flex items-center justify-center gap-1.5 font-medium text-slate-600">
-        <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+        <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
         </svg>
         Thông tin của bạn luôn được bảo mật an toàn
       </p>
-      <p class="text-slate-400 font-medium">Độc đáo - Chất Lượng - Tận Tâm</p>
+      <div class="flex items-center justify-center gap-1.5 text-slate-400 font-medium">
+        <button
+          type="button"
+          onclick="promptGasConfig()"
+          class="inline-flex items-center justify-center p-1 rounded-md text-slate-400 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+          title="Cài đặt Shop"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </button>
+        <span>Độc đáo - Chất Lượng - Tận Tâm</span>
+      </div>
     </div>
   </main>
 
@@ -457,11 +470,9 @@
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
       `;
-      btnText.textContent = 'Đang nén ảnh & tạo đơn, vui lòng đợi...';
+      btnText.textContent = 'Đang gửi thông tin...';
 
       try {
-        // 1. Chuyển đổi tất cả ảnh thành Base64
-        btnText.textContent = `Đang chuyển đổi ${selectedFiles.length} ảnh gốc...`;
         const base64Images = await Promise.all(selectedFiles.map(file => fileToBase64(file)));
 
         // 2. Gom dữ liệu Payload
@@ -474,8 +485,6 @@
           notes: document.getElementById('notes').value.trim(),
           images: base64Images
         };
-
-        btnText.textContent = 'Đang tải lên Google Drive & Sheets...';
 
         // 3. Gửi lên Google Apps Script
         if (SCRIPT_URL && SCRIPT_URL !== "YOUR_GOOGLE_APPS_SCRIPT_WEBAPP_URL_HERE" && SCRIPT_URL.startsWith("https://script.google.com/")) {
@@ -501,16 +510,14 @@
             showSuccessModal(payload, false);
           }
         } else {
-          // Chưa dán URL thật -> Giả lập thành công và nhắc nhở cấu hình
-          console.warn('Chưa cấu hình SCRIPT_URL trong index.html. Đang chạy ở chế độ mô phỏng.');
           setTimeout(() => {
             showSuccessModal(payload, true);
-          }, 1000);
+          }, 800);
         }
 
       } catch (err) {
         console.error('Submit Error:', err);
-        alert('Có trục trặc khi gửi: ' + err.message + '\n\nNếu bạn vừa tạo Script, hãy kiểm tra lại quyền Web App (Who has access: Anyone) và dán đúng URL vào file HTML.');
+        alert('Có trục trặc khi gửi: ' + err.message);
       } finally {
         // Khôi phục nút
         submitBtn.disabled = false;
@@ -521,6 +528,10 @@
         `;
         btnText.textContent = 'Gửi Thông Tin Cho Shop';
       }
+    }
+
+    function promptGasConfig() {
+      alert("Đường dẫn Google Apps Script Web App hiện tại của Shop:\n" + SCRIPT_URL);
     }
 
     function showSuccessModal(data, isDemo = false) {
@@ -539,8 +550,8 @@
         card.classList.add('scale-100');
       }, 10);
 
-      // Reset form sau khi gửi thành công
-      document.getElementById('orderForm').reset();
+      // Giữ lại tất cả thông tin khách trước đó, chỉ làm mới mục sản phẩm và ảnh
+      document.getElementById('product').value = '';
       selectedFiles = [];
       renderPreviewGallery();
     }

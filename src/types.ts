@@ -2,9 +2,12 @@ export interface UploadedImage {
   id: string;
   name: string;
   size: number;
+  originalSize?: number;
+  compressedSize?: number;
   type: string;
   base64: string;
   previewUrl: string;
+  dimensions?: { width: number; height: number };
 }
 
 export interface OrderFormData {

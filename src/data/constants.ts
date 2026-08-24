@@ -1,3 +1,5 @@
+export const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwszC_NVU_4XAU7XiwtAlSdLBRZWpDHHS-iURDsACZUyD-qhsQlqwPwk6Goa8BgKOP3/exec';
+
 export const PRODUCT_CATEGORIES = [
   { id: 'cup', name: '☕ Ly sứ in hình / Ly đổi màu ma thuật', icon: 'Coffee', desc: 'Ly trắng, ly lòng màu, ly cảm ứng nhiệt' },
   { id: 'keychain', name: '🔑 Móc khóa mica / Móc khóa gỗ khắc laser', icon: 'Key', desc: 'Mica trong 2 mặt, gỗ sồi khắc tên' },

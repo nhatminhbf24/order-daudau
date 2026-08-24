@@ -1,22 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Upload, X, Image as ImageIcon, Sparkles, Clock, AlertCircle, 
-  Send, Loader2, CheckCircle2, ShieldCheck, Phone, User, Tag, 
-  MessageSquare, Calendar, HelpCircle
+  Upload, X, Image as ImageIcon, Sparkles, AlertCircle, 
+  Send, Loader2, ShieldCheck, Phone, User, Tag, 
+  MessageSquare, Calendar, HelpCircle, Settings, CheckCircle2
 } from 'lucide-react';
-import { PRODUCT_CATEGORIES } from '../data/constants';
+import { PRODUCT_CATEGORIES, DEFAULT_GAS_URL } from '../data/constants';
 import { UploadedImage, OrderFormData, SubmissionResponse } from '../types';
+import { compressImageForA4Print } from '../utils/imageOptimizer';
 
 interface CustomerOrderFormProps {
   scriptUrl: string;
   onSuccess: (data: SubmissionResponse['data'], rawForm: OrderFormData) => void;
-  onOpenGuide: () => void;
+  onOpenSettings: () => void;
 }
+
+const DRAFT_STORAGE_KEY = 'dau_dau_order_form_draft';
 
 export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({ 
   scriptUrl, 
   onSuccess,
-  onOpenGuide
+  onOpenSettings
 }) => {
   const [formData, setFormData] = useState({
     zaloName: '',
@@ -29,22 +32,55 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatusText, setSubmitStatusText] = useState('Đang gửi dữ liệu...');
+  const [isOptimizingImages, setIsOptimizingImages] = useState(false);
+  const [restoredDraft, setRestoredDraft] = useState(false);
   const [phoneError, setPhoneError] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [todayMinDate, setTodayMinDate] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 1. Khôi phục dữ liệu từ localStorage khi người dùng chuyển qua lại app Zalo
   useEffect(() => {
-    // Set min date to today (YYYY-MM-DD)
     const today = new Date().toISOString().split('T')[0];
     setTodayMinDate(today);
+
+    try {
+      const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (savedDraft) {
+        const parsed = JSON.parse(savedDraft);
+        if (parsed && typeof parsed === 'object') {
+          setFormData(prev => ({
+            ...prev,
+            zaloName: parsed.zaloName || '',
+            phone: parsed.phone || '',
+            product: parsed.product || '',
+            printContent: parsed.printContent || '',
+            deadline: parsed.deadline || '',
+            notes: parsed.notes || '',
+          }));
+
+          const hasContent = Object.values(parsed).some((v: any) => typeof v === 'string' && v.trim().length > 0);
+          if (hasContent) {
+            setRestoredDraft(true);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Lỗi đọc bản nháp localStorage:', err);
+    }
   }, []);
 
+  // 2. Tự động lưu theo thời gian thực mỗi khi gõ
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      const next = { ...prev, [name]: value };
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(next));
+      } catch (err) {}
+      return next;
+    });
 
     if (name === 'phone') {
       const cleanPhone = value.trim();
@@ -57,35 +93,81 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     }
   };
 
-  // Convert File to Base64 and create preview
-  const processFiles = async (files: FileList | File[]) => {
-    const newImages: UploadedImage[] = [];
+  const handleClearDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      setFormData({
+        zaloName: '',
+        phone: '',
+        product: '',
+        printContent: '',
+        deadline: '',
+        notes: '',
+      });
+      setRestoredDraft(false);
+      setPhoneError('');
+    } catch (e) {}
+  };
 
+  // 3. Tối ưu ảnh chuẩn in A4 (2500px, 300 DPI, JPEG quality 0.88)
+  const processFiles = async (files: FileList | File[]) => {
+    const validFiles: File[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (!file.type.startsWith('image/')) continue;
-
-      // Avoid duplicates by name and size
-      const isDuplicate = images.some(img => img.name === file.name && img.size === file.size);
-      if (isDuplicate) continue;
-
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
-
-      newImages.push({
-        id: Math.random().toString(36).substring(2, 9),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        base64: base64,
-        previewUrl: URL.createObjectURL(file),
-      });
+      if (file.type.startsWith('image/')) {
+        const isDuplicate = images.some(img => img.name === file.name && img.size === file.size);
+        if (!isDuplicate) {
+          validFiles.push(file);
+        }
+      }
     }
 
-    setImages(prev => [...prev, ...newImages]);
+    if (validFiles.length === 0) return;
+
+    setIsOptimizingImages(true);
+    const newImages: UploadedImage[] = [];
+
+    try {
+      for (const file of validFiles) {
+        try {
+          const result = await compressImageForA4Print(file, 2500, 0.88);
+
+          newImages.push({
+            id: Math.random().toString(36).substring(2, 9),
+            name: file.name,
+            size: result.compressedSize,
+            originalSize: result.originalSize,
+            compressedSize: result.compressedSize,
+            dimensions: { width: result.width, height: result.height },
+            type: 'image/jpeg',
+            base64: result.base64,
+            previewUrl: result.base64,
+          });
+        } catch (compressErr) {
+          console.warn('Lỗi nén ảnh, chuyển sang đọc trực tiếp:', compressErr);
+          const fallbackBase64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          });
+
+          newImages.push({
+            id: Math.random().toString(36).substring(2, 9),
+            name: file.name,
+            size: file.size,
+            originalSize: file.size,
+            compressedSize: file.size,
+            type: file.type,
+            base64: fallbackBase64,
+            previewUrl: URL.createObjectURL(file),
+          });
+        }
+      }
+
+      setImages(prev => [...prev, ...newImages]);
+    } finally {
+      setIsOptimizingImages(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,18 +188,25 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
   const handleRemoveImage = (id: string) => {
     setImages(prev => {
       const target = prev.find(img => img.id === id);
-      if (target?.previewUrl) {
+      if (target?.previewUrl && target.previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(target.previewUrl);
       }
       return prev.filter(img => img.id !== id);
     });
   };
 
-  const formatSize = (bytes: number) => {
+  const formatSize = (bytes?: number) => {
+    if (!bytes || bytes <= 0) return '0 B';
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
+
+  const totalOriginalSize = images.reduce((acc, img) => acc + (img.originalSize || img.size), 0);
+  const totalCompressedSize = images.reduce((acc, img) => acc + (img.compressedSize || img.size), 0);
+  const savedPercent = totalOriginalSize > 0 && totalCompressedSize < totalOriginalSize 
+    ? Math.round(((totalOriginalSize - totalCompressedSize) / totalOriginalSize) * 100)
+    : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,7 +225,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     }
 
     setIsSubmitting(true);
-    setSubmitStatusText('Đang nén ảnh và tạo đơn, vui lòng đợi...');
 
     const payload = {
       zaloName: formData.zaloName.trim(),
@@ -153,10 +241,8 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     };
 
     try {
-      const cleanUrl = scriptUrl.trim();
-      const isRealUrl = cleanUrl && cleanUrl.startsWith('https://script.google.com/');
-
-      setSubmitStatusText(`Đang xử lý ${images.length} ảnh in & tạo đơn...`);
+      const activeGasUrl = (scriptUrl || DEFAULT_GAS_URL).trim();
+      const isRealUrl = activeGasUrl.startsWith('https://script.google.com/');
 
       // 1. First attempt: Use the Express server backend proxy (/api/submit-order)
       let submittedSuccessfully = false;
@@ -170,7 +256,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           },
           body: JSON.stringify({
             ...payload,
-            scriptUrl: isRealUrl ? cleanUrl : undefined,
+            scriptUrl: isRealUrl ? activeGasUrl : undefined,
           }),
         });
 
@@ -182,14 +268,13 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           }
         }
       } catch (proxyErr) {
-        console.warn('Proxy submission unavailable, falling back to direct browser call:', proxyErr);
+        console.warn('Proxy submission error:', proxyErr);
       }
 
       // 2. If proxy was not available and a real GAS URL is provided, attempt direct fetch
       if (!submittedSuccessfully && isRealUrl) {
-        setSubmitStatusText(`Đang kết nối trực tiếp Google Apps Script...`);
         try {
-          const directResponse = await fetch(cleanUrl, {
+          const directResponse = await fetch(activeGasUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'text/plain;charset=utf-8',
@@ -206,17 +291,27 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             }
           }
         } catch (directErr: any) {
-          console.warn('Direct fetch to GAS failed (likely CORS or GAS permission):', directErr);
+          console.warn('Direct fetch to GAS failed:', directErr);
         }
       }
 
-      // 3. Complete successfully with received data or local simulation data
+      // 3. Cập nhật lại bản nháp lưu giữ thông tin khách, chỉ làm mới mục sản phẩm
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
+          zaloName: formData.zaloName,
+          phone: formData.phone,
+          product: '',
+          printContent: formData.printContent,
+          deadline: formData.deadline,
+          notes: formData.notes,
+        }));
+      } catch (e) {}
+
+      // 4. Complete successfully
       if (submittedSuccessfully && responseData) {
         onSuccess(responseData, { ...formData, images });
         resetForm();
       } else {
-        // Fallback gracefully so the customer's effort is never lost
-        setSubmitStatusText('Đang hoàn tất đơn hàng...');
         await new Promise(r => setTimeout(r, 600));
 
         onSuccess({
@@ -224,7 +319,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           phone: payload.phone,
           product: payload.product,
           savedImages: images.length,
-          folderUrl: isRealUrl ? undefined : 'https://drive.google.com/drive/folders/demo-folder',
           timestamp: new Date().toLocaleString('vi-VN')
         }, { ...formData, images });
 
@@ -232,7 +326,16 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       }
     } catch (err: any) {
       console.error('Submit error:', err);
-      // Even in worst case, show success modal with local backup
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
+          zaloName: formData.zaloName,
+          phone: formData.phone,
+          product: '',
+          printContent: formData.printContent,
+          deadline: formData.deadline,
+          notes: formData.notes,
+        }));
+      } catch (e) {}
       onSuccess({
         zaloName: formData.zaloName,
         phone: formData.phone,
@@ -243,24 +346,29 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       resetForm();
     } finally {
       setIsSubmitting(false);
-      setSubmitStatusText('');
     }
   };
 
   const resetForm = () => {
-    setFormData({
-      zaloName: '',
-      phone: '',
+    // Giữ lại tất cả thông tin đã điền trước đó, chỉ làm mới mục Sản phẩm và Ảnh
+    setFormData(prev => ({
+      zaloName: prev.zaloName,
+      phone: prev.phone,
       product: '',
-      printContent: '',
-      deadline: '',
-      notes: '',
-    });
+      printContent: prev.printContent,
+      deadline: prev.deadline,
+      notes: prev.notes,
+    }));
+    setRestoredDraft(false);
     setImages([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
     <div className="w-full max-w-xl mx-auto">
+
       {/* Main Card Container */}
       <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
         
@@ -280,6 +388,23 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             Gửi ảnh chất lượng cao và yêu cầu thiết kế. Shop sẽ tạo bản demo gửi qua Zalo để bạn duyệt trước khi in.
           </p>
         </div>
+
+        {/* Thông báo tự động lưu nháp khi dùng Zalo */}
+        {restoredDraft && (
+          <div className="mx-5 sm:mx-7 mt-4 p-3 bg-pink-50 border border-pink-200 rounded-xl flex items-center justify-between gap-2 text-xs text-pink-900 animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-pink-600 shrink-0" />
+              <span>Đã tự động khôi phục thông tin khi bạn chuyển đổi ứng dụng.</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleClearDraft}
+              className="text-[11px] text-pink-700 hover:text-pink-950 font-semibold underline shrink-0 cursor-pointer"
+            >
+              Xóa điền lại
+            </button>
+          </div>
+        )}
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 sm:p-7 space-y-5">
@@ -419,7 +544,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               </span>
             </div>
 
-            {/* HD Reminder banner */}
+            {/* Subtitle / HD Reminder banner */}
             <div className="flex items-start gap-2.5 p-3 bg-amber-50/90 border border-amber-200/80 rounded-xl text-xs text-amber-900 mb-3 leading-relaxed">
               <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <div>
@@ -429,14 +554,16 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
             {/* Dropzone */}
             <div
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => !isOptimizingImages && fileInputRef.current?.click()}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
               className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center relative group ${
-                dragOver 
-                  ? 'border-pink-500 bg-pink-50/60 scale-[1.01]' 
-                  : 'border-slate-300 hover:border-pink-500 bg-slate-50/70 hover:bg-pink-50/30'
+                isOptimizingImages 
+                  ? 'border-pink-300 bg-pink-50/40 cursor-wait'
+                  : dragOver 
+                    ? 'border-pink-500 bg-pink-50/60 scale-[1.01]' 
+                    : 'border-slate-300 hover:border-pink-500 bg-slate-50/70 hover:bg-pink-50/30'
               }`}
             >
               <input 
@@ -445,18 +572,49 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                 multiple 
                 accept="image/*" 
                 onChange={handleFileChange}
+                disabled={isOptimizingImages}
                 className="hidden"
               />
-              <div className="w-12 h-12 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
-                <Upload className="w-6 h-6" />
-              </div>
-              <p className="text-sm font-semibold text-slate-800 mb-0.5">
-                Bấm để chọn ảnh hoặc kéo thả vào đây
-              </p>
-              <p className="text-xs text-slate-400">
-                Hỗ trợ JPG, PNG, HEIC, WEBP (Có thể chọn nhiều ảnh)
-              </p>
+
+              {isOptimizingImages ? (
+                <div className="flex flex-col items-center justify-center py-1">
+                  <Loader2 className="w-8 h-8 text-pink-600 animate-spin mb-2" />
+                  <p className="text-xs sm:text-sm font-bold text-slate-800">
+                    Đang tối ưu ảnh chuẩn in A4 (300 DPI)...
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Đang nén dung lượng để gửi siêu nhanh...
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
+                    <Upload className="w-6 h-6" />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800 mb-0.5">
+                    Bấm để chọn ảnh hoặc kéo thả vào đây
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    Hỗ trợ JPG, PNG, HEIC, WEBP (Tự động nén tối ưu A4 khi tải)
+                  </p>
+                </>
+              )}
             </div>
+
+            {/* Total Compression Savings badge */}
+            {images.length > 0 && (
+              <div className="mt-2 flex items-center justify-between px-3 py-1.5 bg-emerald-50 border border-emerald-200/80 rounded-xl text-[11px] text-emerald-800">
+                <span className="flex items-center gap-1 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  Tổng: {formatSize(totalCompressedSize)} (Gốc {formatSize(totalOriginalSize)})
+                </span>
+                {savedPercent > 0 && (
+                  <span className="font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded">
+                    Tiết kiệm {savedPercent}%
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Preview Thumbnails Grid */}
             {images.length > 0 && (
@@ -474,13 +632,13 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                         e.stopPropagation();
                         handleRemoveImage(img.id);
                       }}
-                      className="absolute top-1.5 right-1.5 w-6 h-6 bg-rose-600/90 text-white rounded-full flex items-center justify-center text-xs shadow hover:bg-rose-700 transition-colors"
+                      className="absolute top-1.5 right-1.5 w-6 h-6 bg-rose-600/90 text-white rounded-full flex items-center justify-center text-xs shadow hover:bg-rose-700 transition-colors cursor-pointer"
                       title="Xóa ảnh này"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                     <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/65 text-white rounded text-[10px] backdrop-blur-xs font-mono">
-                      {formatSize(img.size)}
+                      {formatSize(img.compressedSize || img.size)}
                     </span>
                   </div>
                 ))}
@@ -492,13 +650,13 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           <div className="pt-2">
             <button 
               type="submit" 
-              disabled={isSubmitting}
+              disabled={isSubmitting || isOptimizingImages}
               className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-600 hover:from-rose-600 hover:to-indigo-700 text-white font-bold text-sm sm:text-base shadow-lg shadow-pink-500/25 hover:shadow-pink-500/35 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>{submitStatusText || 'Đang tải ảnh và tạo đơn, vui lòng đợi...'}</span>
+                  <span>Đang gửi thông tin...</span>
                 </>
               ) : (
                 <>
@@ -513,12 +671,22 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       </div>
 
       {/* Security and trust footer */}
-      <div className="text-center mt-5 text-xs text-slate-500 space-y-1">
+      <div className="text-center mt-5 text-xs text-slate-500 space-y-1.5">
         <p className="flex items-center justify-center gap-1.5 font-medium text-slate-600">
-          <ShieldCheck className="w-4 h-4 text-emerald-500" />
+          <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
           Thông tin của bạn luôn được bảo mật an toàn
         </p>
-        <p className="text-slate-400 font-medium">Độc đáo - Chất Lượng - Tận Tâm</p>
+        <div className="flex items-center justify-center gap-1 text-slate-400 font-medium">
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            className="inline-flex items-center justify-center p-1 rounded-md text-slate-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+            title="Cài đặt Shop"
+          >
+            <Settings className="w-3.5 h-3.5" />
+          </button>
+          <span>Độc đáo - Chất Lượng - Tận Tâm</span>
+        </div>
       </div>
 
     </div>
