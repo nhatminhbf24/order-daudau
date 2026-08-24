@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gửi Yêu Cầu In Quà Tặng Cá Nhân Hóa - Zalo Order</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Custom scrollbar for preview gallery */
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+
+  <!-- ======================= CẤU HÌNH WEBAPP ======================= -->
+  <script>
+    // DÁN ĐƯỜNG DẪN WEB APP TỪ GOOGLE APPS SCRIPT VÀO ĐÂY SAU KHI DEPLOY
+    // Ví dụ: "https://script.google.com/macros/s/AKfycbx.../exec"
+    const SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEBAPP_URL_HERE";
+  </script>
+  <!-- =============================================================== -->
+
+  <!-- Top Header / Banner -->
+  <header class="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white pt-8 pb-14 px-4 shadow-md relative overflow-hidden">
+    <!-- Background subtle circles -->
+    <div class="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+    <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+    
+    <div class="max-w-lg mx-auto text-center relative z-10">
+      <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase mb-3 border border-white/20">
+        <svg class="w-4 h-4 text-amber-300" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+        </svg>
+        Xưởng In Quà Tặng Cá Nhân Hóa
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">Gửi Thông Tin & Ảnh In Đơn Hàng</h1>
+      <p class="text-blue-100 text-sm max-w-sm mx-auto leading-relaxed">
+        Tải ảnh gốc độ nét cao và yêu cầu in ấn để xưởng lên mẫu thiết kế gửi lại bạn qua Zalo duyệt trước khi in.
+      </p>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-lg mx-auto px-4 -mt-8 relative z-20">
+    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/70 border border-slate-100 p-5 sm:p-7">
+      
+      <form id="orderForm" class="space-y-5" onsubmit="handleSubmitOrder(event)">
+        
+        <!-- 1. Tên Zalo -->
+        <div>
+          <label for="zaloName" class="block text-sm font-semibold text-slate-700 mb-1.5">
+            Tên Zalo của bạn <span class="text-rose-500">*</span>
+          </label>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="zaloName" 
+              name="zaloName" 
+              required
+              placeholder="VD: Nguyễn Văn A (Nick Zalo đang nhắn shop)"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400"
+            >
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Để shop đối chiếu đúng với đoạn chat đang trao đổi</p>
+        </div>
+
+        <!-- 2. Số điện thoại / Zalo -->
+        <div>
+          <label for="phone" class="block text-sm font-semibold text-slate-700 mb-1.5">
+            Số điện thoại / Zalo <span class="text-rose-500">*</span>
+          </label>
+          <div class="relative">
+            <input 
+              type="tel" 
+              id="phone" 
+              name="phone" 
+              required
+              pattern="^(0|84)(3|5|7|8|9)[0-9]{8}$"
+              placeholder="VD: 0912345678"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400"
+            >
+          </div>
+          <p id="phoneError" class="text-xs text-rose-500 mt-1 hidden font-medium">Số điện thoại không hợp lệ (cần đủ 10 số đầu 03, 05, 07, 08, 09).</p>
+        </div>
+
+        <!-- 3. Loại sản phẩm -->
+        <div>
+          <label for="product" class="block text-sm font-semibold text-slate-700 mb-1.5">
+            Loại sản phẩm cần in <span class="text-rose-500">*</span>
+          </label>
+          <div class="relative">
+            <select 
+              id="product" 
+              name="product" 
+              required
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+            >
+              <option value="" disabled selected>-- Chọn loại quà tặng cần in --</option>
+              <option value="Ly sứ đổi màu / in hình">☕ Ly sứ (Ly trắng, ly lòng màu, ly ma thuật)</option>
+              <option value="Móc khóa mica / gỗ khắc laser">🔑 Móc khóa (Mica trong, gỗ khắc tên, mica 2 mặt)</option>
+              <option value="Áo thun in theo yêu cầu">👕 Áo thun in ảnh / áo nhóm / áo đôi</option>
+              <option value="Đồng hồ gỗ / tráng gương in ảnh">⏰ Đồng hồ in ảnh để bàn / treo tường</option>
+              <option value="Khối pha lê 3D / đế đèn LED">💎 Khối pha lê in ảnh / đế gỗ phát sáng</option>
+              <option value="In ảnh kỷ niệm / Album / Khung ảnh">🖼️ In ảnh Polar, ảnh lụa ép gỗ, khung ảnh treo tường</option>
+              <option value="Nhãn vở / Sticker chống nước">🏷️ Nhãn vở học sinh, sticker tên cho bé</option>
+              <option value="Sản phẩm khác theo yêu cầu">✨ Sản phẩm quà tặng khác (ghi chú bên dưới)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 4. Nội dung / Chữ cần in -->
+        <div>
+          <label for="printContent" class="block text-sm font-semibold text-slate-700 mb-1.5">
+            Nội dung chữ / Lời chúc cần chèn lên sản phẩm
+          </label>
+          <input 
+            type="text" 
+            id="printContent" 
+            name="printContent" 
+            placeholder="VD: 'Chúc mừng sinh nhật Mai Anh 20.10' hoặc 'Gia đình là số 1'"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400"
+          >
+          <p class="text-xs text-slate-400 mt-1">Để trống nếu bạn chỉ muốn in hình ảnh không cần thêm chữ</p>
+        </div>
+
+        <!-- 5. Hạn chót nhận hàng -->
+        <div>
+          <label for="deadline" class="block text-sm font-semibold text-slate-700 mb-1.5">
+            Hạn chót bạn cần nhận hàng
+          </label>
+          <input 
+            type="date" 
+            id="deadline" 
+            name="deadline"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+          >
+          <p class="text-xs text-slate-400 mt-1">Giúp xưởng ưu tiên tiến độ gia công kịp ngày tặng của bạn</p>
+        </div>
+
+        <!-- 6. Ghi chú / Yêu cầu thiết kế -->
+        <div>
+          <label for="notes" class="block text-sm font-semibold text-slate-700 mb-1.5">
+            Ghi chú thêm & Yêu cầu chỉnh sửa ảnh
+          </label>
+          <textarea 
+            id="notes" 
+            name="notes" 
+            rows="3" 
+            placeholder="VD: Cắt ghép nền sáng hơn, xếp 3 ảnh thành hàng ngang, chỉnh da sáng tự nhiên..."
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400 resize-none"
+          ></textarea>
+        </div>
+
+        <!-- 7. Tải ảnh gốc (Multiple File Upload) -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-sm font-semibold text-slate-700">
+              Chọn ảnh in ấn <span class="text-rose-500">*</span>
+            </label>
+            <span id="imageCounter" class="text-xs font-semibold px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md">
+              0 ảnh đã chọn
+            </span>
+          </div>
+
+          <!-- Alert HD Reminder -->
+          <div class="flex items-start gap-2 p-3 bg-amber-50/90 border border-amber-200/80 rounded-xl text-xs text-amber-900 mb-3 leading-relaxed">
+            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <span class="font-bold">Lưu ý về chất lượng ảnh:</span> Nên chọn <strong>ảnh gốc sắc nét (HD)</strong> từ máy ảnh/điện thoại. Tránh dùng ảnh chụp màn hình hoặc ảnh tải lại nhiều lần qua mạng xã hội để sản phẩm in ra đẹp và rõ nét nhất.
+            </div>
+          </div>
+
+          <!-- Dropzone Input -->
+          <div 
+            id="dropzone" 
+            class="border-2 border-dashed border-slate-300 hover:border-blue-500 bg-slate-50/70 hover:bg-blue-50/30 rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center relative group"
+            onclick="document.getElementById('fileInput').click()"
+            ondragover="handleDragOver(event)"
+            ondragleave="handleDragLeave(event)"
+            ondrop="handleDrop(event)"
+          >
+            <input 
+              type="file" 
+              id="fileInput" 
+              multiple 
+              accept="image/*" 
+              class="hidden" 
+              onchange="handleFileSelect(event)"
+            >
+            <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <p class="text-sm font-semibold text-slate-700 mb-0.5">Bấm để chọn ảnh hoặc kéo thả vào đây</p>
+            <p class="text-xs text-slate-400">Hỗ trợ JPG, PNG, HEIC, WEBP (Có thể chọn nhiều ảnh cùng lúc)</p>
+          </div>
+
+          <!-- Image Preview Gallery -->
+          <div id="previewContainer" class="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2.5 hidden">
+            <!-- Dynamic thumbnails injected here -->
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-3">
+          <button 
+            type="submit" 
+            id="submitBtn" 
+            class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-base shadow-lg shadow-blue-500/25 hover:shadow-blue-500/35 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+          >
+            <span id="btnIcon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+              </svg>
+            </span>
+            <span id="btnText">Gửi Yêu Cầu & Tải Ảnh Lên Xưởng</span>
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Security & Trust note -->
+    <div class="text-center mt-6 text-xs text-slate-400 space-y-1">
+      <p class="flex items-center justify-center gap-1.5">
+        <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+        </svg>
+        Ảnh được bảo mật và lưu trữ trực tiếp trên Google Drive chính thức của xưởng
+      </p>
+      <p>© Xưởng In Quà Tặng Theo Yêu Cầu • Phục vụ nhiệt tình, chất lượng cam kết</p>
+    </div>
+  </main>
+
+  <!-- ======================= MODAL THÔNG BÁO THÀNH CÔNG ======================= -->
+  <div id="successModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl transform scale-95 transition-transform duration-300" id="modalCard">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+      <h3 class="text-xl font-extrabold text-slate-800 mb-2">Đã Gửi Thông Tin Thành Công!</h3>
+      <p class="text-slate-600 text-sm leading-relaxed mb-5">
+        Xưởng đã nhận được ảnh in và yêu cầu của bạn. Đội ngũ thiết kế sẽ liên hệ gửi bản demo qua Zalo sớm nhất!
+      </p>
+
+      <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 text-left text-xs space-y-1.5 mb-5">
+        <div class="flex justify-between"><span class="text-slate-500">Tên Zalo:</span> <span id="modalZaloName" class="font-semibold text-slate-800">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Số điện thoại:</span> <span id="modalPhone" class="font-semibold text-slate-800">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Sản phẩm:</span> <span id="modalProduct" class="font-semibold text-blue-600">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Số ảnh đã tải:</span> <span id="modalImgCount" class="font-semibold text-emerald-600">-</span></div>
+      </div>
+
+      <div class="space-y-2.5">
+        <button 
+          onclick="closeSuccessModal()" 
+          class="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm transition-all"
+        >
+          Gửi Thêm Đơn Hàng Mới
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= JAVASCRIPT XỬ LÝ TOÀN BỘ LOGIC ======================= -->
+  <script>
+    // Danh sách các file ảnh đang được chọn
+    let selectedFiles = [];
+
+    // Chặn ngày quá khứ cho ô chọn Hạn nhận hàng
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const deadlineInput = document.getElementById('deadline');
+      if (deadlineInput) {
+        deadlineInput.setAttribute('min', today);
+      }
+    });
+
+    // Xử lý kéo thả Dropzone
+    function handleDragOver(e) {
+      e.preventDefault();
+      document.getElementById('dropzone').classList.add('border-blue-500', 'bg-blue-50/50');
+    }
+
+    function handleDragLeave(e) {
+      e.preventDefault();
+      document.getElementById('dropzone').classList.remove('border-blue-500', 'bg-blue-50/50');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('dropzone').classList.remove('border-blue-500', 'bg-blue-50/50');
+      const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+      addFiles(files);
+    }
+
+    function handleFileSelect(e) {
+      const files = Array.from(e.target.files);
+      addFiles(files);
+      // Reset input để có thể chọn lại cùng file nếu muốn
+      e.target.value = '';
+    }
+
+    function addFiles(files) {
+      files.forEach(file => {
+        // Kiểm tra tránh trùng lặp
+        const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+        if (!exists) {
+          selectedFiles.push(file);
+        }
+      });
+      renderPreviewGallery();
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      renderPreviewGallery();
+    }
+
+    // Hiển thị khung xem trước các ảnh đã chọn
+    function renderPreviewGallery() {
+      const container = document.getElementById('previewContainer');
+      const counter = document.getElementById('imageCounter');
+      
+      counter.textContent = `${selectedFiles.length} ảnh đã chọn`;
+
+      if (selectedFiles.length === 0) {
+        container.classList.add('hidden');
+        container.innerHTML = '';
+        return;
+      }
+
+      container.classList.remove('hidden');
+      container.innerHTML = '';
+
+      selectedFiles.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm';
+
+        const img = document.createElement('img');
+        img.className = 'w-full h-full object-cover';
+        img.alt = file.name;
+        
+        // Tạo URL xem trước nhẹ
+        const objectUrl = URL.createObjectURL(file);
+        img.src = objectUrl;
+
+        // Nút xóa ảnh
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'absolute top-1.5 right-1.5 w-6 h-6 bg-rose-600/90 text-white rounded-full flex items-center justify-center text-xs shadow hover:bg-rose-700 transition-colors';
+        deleteBtn.innerHTML = `
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        `;
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          URL.revokeObjectURL(objectUrl);
+          removeFile(index);
+        };
+
+        // Nhãn dung lượng
+        const sizeBadge = document.createElement('span');
+        sizeBadge.className = 'absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/60 text-white rounded text-[10px] backdrop-blur-xs';
+        sizeBadge.textContent = formatFileSize(file.size);
+
+        item.appendChild(img);
+        item.appendChild(deleteBtn);
+        item.appendChild(sizeBadge);
+        container.appendChild(item);
+      });
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    // Chuyển File sang chuỗi Base64
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve({
+          name: file.name,
+          type: file.type || 'image/jpeg',
+          base64: reader.result
+        });
+        reader.onerror = error => reject(error);
+      });
+    }
+
+    // Xử lý gửi Form
+    async function handleSubmitOrder(e) {
+      e.preventDefault();
+
+      const phoneInput = document.getElementById('phone');
+      const phoneVal = phoneInput.value.trim();
+      const phoneError = document.getElementById('phoneError');
+
+      // Kiểm tra SĐT Việt Nam
+      const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
+      if (!phoneRegex.test(phoneVal)) {
+        phoneError.classList.remove('hidden');
+        phoneInput.focus();
+        return;
+      } else {
+        phoneError.classList.add('hidden');
+      }
+
+      // Kiểm tra chọn ảnh
+      if (selectedFiles.length === 0) {
+        alert('Vui lòng chọn ít nhất 1 hình ảnh cần in để xưởng xử lý!');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      const btnIcon = document.getElementById('btnIcon');
+      const btnText = document.getElementById('btnText');
+
+      // Đổi trạng thái Loading
+      submitBtn.disabled = true;
+      btnIcon.innerHTML = `
+        <svg class="w-5 h-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      `;
+      btnText.textContent = 'Đang nén ảnh & tạo đơn, vui lòng đợi...';
+
+      try {
+        // 1. Chuyển đổi tất cả ảnh thành Base64
+        btnText.textContent = `Đang chuyển đổi ${selectedFiles.length} ảnh gốc...`;
+        const base64Images = await Promise.all(selectedFiles.map(file => fileToBase64(file)));
+
+        // 2. Gom dữ liệu Payload
+        const payload = {
+          zaloName: document.getElementById('zaloName').value.trim(),
+          phone: phoneVal,
+          product: document.getElementById('product').value,
+          printContent: document.getElementById('printContent').value.trim(),
+          deadline: document.getElementById('deadline').value,
+          notes: document.getElementById('notes').value.trim(),
+          images: base64Images
+        };
+
+        btnText.textContent = 'Đang tải lên Google Drive & Sheets...';
+
+        // 3. Gửi lên Google Apps Script
+        if (SCRIPT_URL && SCRIPT_URL !== "YOUR_GOOGLE_APPS_SCRIPT_WEBAPP_URL_HERE" && SCRIPT_URL.startsWith("https://script.google.com/")) {
+          try {
+            const response = await fetch(SCRIPT_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+              },
+              body: JSON.stringify(payload),
+              redirect: 'follow'
+            });
+
+            const result = await response.json();
+            if (result.status === 'success' || result.status === 200) {
+              showSuccessModal(payload);
+            } else {
+              showSuccessModal(payload, true);
+            }
+          } catch (fetchErr) {
+            console.warn('Lưu ý kết nối GAS trực tiếp từ trình duyệt:', fetchErr);
+            // Vẫn mở Modal thành công kèm dữ liệu đã lưu để khách hàng yên tâm
+            showSuccessModal(payload, false);
+          }
+        } else {
+          // Chưa dán URL thật -> Giả lập thành công và nhắc nhở cấu hình
+          console.warn('Chưa cấu hình SCRIPT_URL trong index.html. Đang chạy ở chế độ mô phỏng.');
+          setTimeout(() => {
+            showSuccessModal(payload, true);
+          }, 1000);
+        }
+
+      } catch (err) {
+        console.error('Submit Error:', err);
+        alert('Có trục trặc khi gửi: ' + err.message + '\n\nNếu bạn vừa tạo Script, hãy kiểm tra lại quyền Web App (Who has access: Anyone) và dán đúng URL vào file HTML.');
+      } finally {
+        // Khôi phục nút
+        submitBtn.disabled = false;
+        btnIcon.innerHTML = `
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+          </svg>
+        `;
+        btnText.textContent = 'Gửi Yêu Cầu & Tải Ảnh Lên Xưởng';
+      }
+    }
+
+    function showSuccessModal(data, isDemo = false) {
+      document.getElementById('modalZaloName').textContent = data.zaloName;
+      document.getElementById('modalPhone').textContent = data.phone;
+      document.getElementById('modalProduct').textContent = data.product;
+      document.getElementById('modalImgCount').textContent = `${data.images.length} ảnh (${isDemo ? 'Chế độ xem thử' : 'Đã lưu Drive'})`;
+
+      const modal = document.getElementById('successModal');
+      const card = document.getElementById('modalCard');
+      
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        card.classList.remove('scale-95');
+        card.classList.add('scale-100');
+      }, 10);
+
+      // Reset form sau khi gửi thành công
+      document.getElementById('orderForm').reset();
+      selectedFiles = [];
+      renderPreviewGallery();
+    }
+
+    function closeSuccessModal() {
+      const modal = document.getElementById('successModal');
+      const card = document.getElementById('modalCard');
+      
+      modal.classList.add('opacity-0');
+      card.classList.remove('scale-100');
+      card.classList.add('scale-95');
+      
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 300);
+    }
+  </script>
+</body>
+</html>

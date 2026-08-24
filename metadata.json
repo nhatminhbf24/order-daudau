@@ -1,0 +1,6 @@
+{
+  "name": "Zalo Gift Order Collector",
+  "description": "Hệ thống thu thập đơn hàng và ảnh in chất lượng cao cho xưởng in quà tặng cá nhân hóa qua Zalo kết nối Google Drive & Sheets",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
