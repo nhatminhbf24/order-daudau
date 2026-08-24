@@ -259,44 +259,8 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     setImages([]);
   };
 
-  const isConfigured = scriptUrl && scriptUrl.startsWith('https://script.google.com/');
-
   return (
     <div className="w-full max-w-xl mx-auto">
-      
-      {/* Backend connection badge / quick status */}
-      <div className="mb-4">
-        {isConfigured ? (
-          <div className="flex items-center justify-between px-3.5 py-2 bg-emerald-50 border border-emerald-200/80 rounded-xl text-xs text-emerald-800">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="font-semibold">Đã kết nối Google Apps Script</span>
-            </div>
-            <button 
-              type="button" 
-              onClick={onOpenGuide}
-              className="text-emerald-700 hover:text-emerald-900 font-medium underline"
-            >
-              Cấu hình lại
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between px-3.5 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 shadow-sm">
-            <div className="flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>Chưa gắn link Apps Script (Đang ở chế độ xem thử nghiệm)</span>
-            </div>
-            <button 
-              type="button" 
-              onClick={onOpenGuide}
-              className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shrink-0 transition-colors"
-            >
-              Xem hướng dẫn dán link
-            </button>
-          </div>
-        )}
-      </div>
-
       {/* Main Card Container */}
       <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
         

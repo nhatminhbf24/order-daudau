@@ -10,18 +10,26 @@ import { SuccessModal } from './components/SuccessModal';
 import { SubmissionResponse, OrderFormData } from './types';
 
 export default function App() {
+  const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwszC_NVU_4XAU7XiwtAlSdLBRZWpDHHS-iURDsACZUyD-qhsQlqwPwk6Goa8BgKOP3/exec';
+  const [scriptUrl, setScriptUrl] = useState<string>(DEFAULT_GAS_URL);
   const [activeTab, setActiveTab] = useState<'form' | 'guide' | 'logs'>('form');
   const [deviceMode, setDeviceMode] = useState<'mobile' | 'responsive'>('responsive');
-  const [scriptUrl, setScriptUrl] = useState<string>('');
+  const [isAdminMode, setIsAdminMode] = useState<boolean>(false);
   const [successModalData, setSuccessModalData] = useState<SubmissionResponse['data'] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderHistory, setOrderHistory] = useState<any[]>([]);
 
-  // Load saved SCRIPT_URL from localStorage
+  // Check URL params for admin mode (e.g. ?admin=true) or localStorage
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('admin') === 'true' || params.get('mode') === 'admin') {
+      setIsAdminMode(true);
+    }
     const saved = localStorage.getItem('ZALO_GIFT_GAS_URL');
     if (saved) {
       setScriptUrl(saved);
+    } else {
+      localStorage.setItem('ZALO_GIFT_GAS_URL', DEFAULT_GAS_URL);
     }
   }, []);
 
@@ -49,7 +57,7 @@ export default function App() {
       
       {/* Top Navbar */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           
           {/* Logo / Brand */}
           <div className="flex items-center gap-2.5">
@@ -61,87 +69,80 @@ export default function App() {
                 <h1 className="font-extrabold text-slate-900 text-sm sm:text-base tracking-tight">
                   Dâu Dâu Shop Quà Tặng In Hình
                 </h1>
-                <span className="bg-pink-100 text-pink-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
-                  v1.0 Pro
-                </span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Thu thập ảnh HD & đơn hàng quà tặng kết nối Google Drive + Sheets
+                Gửi thông tin đơn hàng và ảnh in ấn trực tiếp cho Shop
               </p>
             </div>
           </div>
 
-          {/* Navigation tabs */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => setActiveTab('form')}
-              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
-                activeTab === 'form' 
-                  ? 'bg-white text-blue-600 shadow-sm' 
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span>Giao diện Khách Hàng</span>
-            </button>
+          {/* Admin Navigation tabs (Only visible if Admin Mode is enabled) */}
+          {isAdminMode && (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('form')}
+                  className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                    activeTab === 'form' 
+                      ? 'bg-white text-rose-600 shadow-sm' 
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>Khách Hàng</span>
+                </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveTab('guide')}
-              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
-                activeTab === 'guide' 
-                  ? 'bg-white text-blue-600 shadow-sm' 
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Code2 className="w-3.5 h-3.5" />
-              <span>Mã Nguồn & Cài Đặt GAS</span>
-            </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('guide')}
+                  className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                    activeTab === 'guide' 
+                      ? 'bg-white text-rose-600 shadow-sm' 
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Code2 className="w-3.5 h-3.5" />
+                  <span>Cài Đặt GAS</span>
+                </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveTab('logs')}
-              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 relative ${
-                activeTab === 'logs' 
-                  ? 'bg-white text-blue-600 shadow-sm' 
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <History className="w-3.5 h-3.5" />
-              <span>Nhật Ký Nhận Đơn</span>
-              {orderHistory.length > 0 && (
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping absolute -top-0.5 -right-0.5"></span>
-              )}
-            </button>
-          </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('logs')}
+                  className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 relative ${
+                    activeTab === 'logs' 
+                      ? 'bg-white text-rose-600 shadow-sm' 
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>Nhật Ký Đơn</span>
+                  {orderHistory.length > 0 && (
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping absolute -top-0.5 -right-0.5"></span>
+                  )}
+                </button>
+              </div>
 
-          {/* View mode toggle on form tab */}
-          {activeTab === 'form' && (
-            <div className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
               <button
                 type="button"
-                onClick={() => setDeviceMode('responsive')}
-                className={`px-2.5 py-1.5 rounded-lg font-medium flex items-center gap-1 transition-all ${
-                  deviceMode === 'responsive' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500'
-                }`}
-                title="Xem dạng trải rộng"
+                onClick={() => setIsAdminMode(false)}
+                className="text-xs text-slate-400 hover:text-slate-700 px-2 py-1"
+                title="Đóng thanh quản trị"
               >
-                <Monitor className="w-3.5 h-3.5" />
-                Màn hình chuẩn
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeviceMode('mobile')}
-                className={`px-2.5 py-1.5 rounded-lg font-medium flex items-center gap-1 transition-all ${
-                  deviceMode === 'mobile' ? 'bg-white text-blue-600 shadow-xs font-semibold' : 'text-slate-500'
-                }`}
-                title="Xem dạng khung điện thoại iPhone/Android"
-              >
-                <Smartphone className="w-3.5 h-3.5" />
-                Mô phỏng Mobile
+                ✕ Đóng
               </button>
             </div>
+          )}
+
+          {/* Quick link to admin mode if hidden */}
+          {!isAdminMode && (
+            <button
+              type="button"
+              onClick={() => setIsAdminMode(true)}
+              className="text-[11px] font-medium text-slate-400 hover:text-rose-600 px-2.5 py-1 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              Cài đặt Shop ⚙️
+            </button>
           )}
 
         </div>
