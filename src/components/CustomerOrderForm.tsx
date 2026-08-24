@@ -308,8 +308,18 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       } catch (e) {}
 
       // 4. Complete successfully
+      const finalImgCount = images.length;
       if (submittedSuccessfully && responseData) {
-        onSuccess(responseData, { ...formData, images });
+        const safeData = {
+          ...responseData,
+          savedImages: (typeof responseData.savedImages === 'number' && responseData.savedImages > 0)
+            ? responseData.savedImages
+            : finalImgCount,
+          product: responseData.product || formData.product,
+          zaloName: responseData.zaloName || formData.zaloName,
+          phone: responseData.phone || formData.phone,
+        };
+        onSuccess(safeData, { ...formData, images });
         resetForm();
       } else {
         await new Promise(r => setTimeout(r, 600));
@@ -318,7 +328,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           zaloName: payload.zaloName,
           phone: payload.phone,
           product: payload.product,
-          savedImages: images.length,
+          savedImages: finalImgCount,
           timestamp: new Date().toLocaleString('vi-VN')
         }, { ...formData, images });
 
@@ -340,7 +350,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
         zaloName: formData.zaloName,
         phone: formData.phone,
         product: formData.product,
-        savedImages: images.length,
+        savedImages: images.length > 0 ? images.length : 1,
         timestamp: new Date().toLocaleString('vi-VN')
       }, { ...formData, images });
       resetForm();
@@ -600,21 +610,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                 </>
               )}
             </div>
-
-            {/* Total Compression Savings badge */}
-            {images.length > 0 && (
-              <div className="mt-2 flex items-center justify-between px-3 py-1.5 bg-emerald-50 border border-emerald-200/80 rounded-xl text-[11px] text-emerald-800">
-                <span className="flex items-center gap-1 font-medium">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  Tổng: {formatSize(totalCompressedSize)} (Gốc {formatSize(totalOriginalSize)})
-                </span>
-                {savedPercent > 0 && (
-                  <span className="font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded">
-                    Tiết kiệm {savedPercent}%
-                  </span>
-                )}
-              </div>
-            )}
 
             {/* Preview Thumbnails Grid */}
             {images.length > 0 && (

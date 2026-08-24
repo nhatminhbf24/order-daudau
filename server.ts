@@ -76,6 +76,16 @@ async function startServer() {
           if (gasResponse.ok) {
             const gasData = await gasResponse.json();
             
+            // Ensure savedImages count is populated
+            if (gasData && gasData.data) {
+              if (typeof gasData.data.savedImages !== 'number' || gasData.data.savedImages <= 0) {
+                gasData.data.savedImages = imagesCount;
+              }
+              if (!gasData.data.product) gasData.data.product = product;
+              if (!gasData.data.zaloName) gasData.data.zaloName = zaloName;
+              if (!gasData.data.phone) gasData.data.phone = phone;
+            }
+
             // Save to local memory history too
             inMemoryOrders.unshift({
               id: orderId,

@@ -46,7 +46,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, dat
             <span className="text-slate-500">Số lượng ảnh:</span>
             <span className="font-semibold text-emerald-600 flex items-center gap-1">
               <Image className="w-3.5 h-3.5" />
-              {data.savedImages || 0} ảnh gốc
+              {(typeof data.savedImages === 'number' && data.savedImages > 0) ? data.savedImages : ((data as any).imagesCount || 1)} ảnh gốc
             </span>
           </div>
           {data.timestamp && (

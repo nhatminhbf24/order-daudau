@@ -26,7 +26,18 @@ export default function App() {
   };
 
   const handleOrderSuccess = (data: SubmissionResponse['data'], rawForm: OrderFormData) => {
-    setSuccessModalData(data || null);
+    const uploadedImagesCount = (rawForm.images && rawForm.images.length > 0) ? rawForm.images.length : 1;
+    const finalData: SubmissionResponse['data'] = {
+      ...data,
+      zaloName: data?.zaloName || rawForm.zaloName,
+      phone: data?.phone || rawForm.phone,
+      product: data?.product || rawForm.product,
+      savedImages: (data && typeof data.savedImages === 'number' && data.savedImages > 0)
+        ? data.savedImages
+        : uploadedImagesCount,
+      timestamp: data?.timestamp || new Date().toLocaleString('vi-VN')
+    };
+    setSuccessModalData(finalData);
     setIsModalOpen(true);
   };
 
