@@ -25,7 +25,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, dat
         </h3>
         
         <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
-          Xưởng đã nhận được ảnh in và yêu cầu của bạn. Đội ngũ thiết kế sẽ liên hệ gửi bản demo qua Zalo sớm nhất!
+          Shop đã nhận được ảnh in và yêu cầu của bạn. Đội ngũ thiết kế sẽ liên hệ gửi bản demo qua Zalo sớm nhất!
         </p>
 
         {/* Order Details Card */}

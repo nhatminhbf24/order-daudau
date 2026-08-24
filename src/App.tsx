@@ -53,15 +53,15 @@ export default function App() {
           
           {/* Logo / Brand */}
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-rose-500/20">
               <Gift className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
                 <h1 className="font-extrabold text-slate-900 text-sm sm:text-base tracking-tight">
-                  Zalo Gift Order Collector
+                  Dâu Dâu Shop Quà Tặng In Hình
                 </h1>
-                <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
+                <span className="bg-pink-100 text-pink-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
                   v1.0 Pro
                 </span>
               </div>

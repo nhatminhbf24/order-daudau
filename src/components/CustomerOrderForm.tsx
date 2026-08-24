@@ -131,7 +131,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
     // Validate images
     if (images.length === 0) {
-      alert('Vui lòng tải lên ít nhất 1 hình ảnh cần in để xưởng xử lý!');
+      alert('Vui lòng tải lên ít nhất 1 hình ảnh cần in để Shop xử lý!');
       return;
     }
 
@@ -301,19 +301,19 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
         
         {/* Banner Top Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white p-6 sm:p-7 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-600 text-white p-6 sm:p-7 relative overflow-hidden">
           <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
           
           <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-2.5 border border-white/20">
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            Xưởng In Quà Tặng Cá Nhân Hóa
+            Dâu Dâu Shop Quà Tặng In Hình
           </div>
           
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-1.5">
-            Gửi Thông Tin & Ảnh In Đơn Hàng
+            Thông Tin Đơn Hàng
           </h2>
-          <p className="text-blue-100 text-xs sm:text-sm leading-relaxed max-w-md">
-            Gửi ảnh chất lượng cao và yêu cầu thiết kế. Xưởng sẽ tạo bản demo gửi qua Zalo để bạn duyệt trước khi in.
+          <p className="text-pink-100 text-xs sm:text-sm leading-relaxed max-w-md">
+            Gửi ảnh chất lượng cao và yêu cầu thiết kế. Shop sẽ tạo bản demo gửi qua Zalo để bạn duyệt trước khi in.
           </p>
         </div>
 
@@ -323,7 +323,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           {/* 1. Tên Zalo */}
           <div>
             <label htmlFor="zaloName" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
-              <User className="w-4 h-4 text-blue-600" />
+              <User className="w-4 h-4 text-pink-600" />
               Tên Nick Zalo của bạn <span className="text-rose-500">*</span>
             </label>
             <input 
@@ -333,16 +333,16 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               required
               value={formData.zaloName}
               onChange={handleInputChange}
-              placeholder="VD: Nguyễn Văn A (Tên Zalo đang chat với shop)"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400"
+              placeholder="VD: Nguyễn Văn A (Tên Zalo đang chat với Shop)"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
             />
-            <p className="text-[11px] text-slate-400 mt-1">Giúp shop đối chiếu nhanh với đoạn chat Zalo</p>
+            <p className="text-[11px] text-slate-400 mt-1">Giúp Shop đối chiếu nhanh với đoạn chat Zalo</p>
           </div>
 
           {/* 2. Số điện thoại */}
           <div>
             <label htmlFor="phone" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
-              <Phone className="w-4 h-4 text-blue-600" />
+              <Phone className="w-4 h-4 text-pink-600" />
               Số điện thoại / Zalo <span className="text-rose-500">*</span>
             </label>
             <input 
@@ -356,7 +356,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               className={`w-full px-3.5 py-2.5 rounded-xl border text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 transition-all placeholder:text-slate-400 ${
                 phoneError 
                   ? 'border-rose-400 bg-rose-50/30 focus:ring-rose-500' 
-                  : 'border-slate-200 bg-slate-50/50 focus:ring-blue-500 focus:border-transparent'
+                  : 'border-slate-200 bg-slate-50/50 focus:ring-pink-500 focus:border-transparent'
               }`}
             />
             {phoneError && (
@@ -370,7 +370,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           {/* 3. Sản phẩm */}
           <div>
             <label htmlFor="product" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
-              <Tag className="w-4 h-4 text-blue-600" />
+              <Tag className="w-4 h-4 text-pink-600" />
               Loại sản phẩm cần in <span className="text-rose-500">*</span>
             </label>
             <select 
@@ -379,7 +379,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               required
               value={formData.product}
               onChange={handleInputChange}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
             >
               <option value="" disabled>-- Chọn loại sản phẩm in ấn --</option>
               {PRODUCT_CATEGORIES.map(cat => (
@@ -393,7 +393,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           {/* 4. Chữ cần in */}
           <div>
             <label htmlFor="printContent" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
-              <MessageSquare className="w-4 h-4 text-blue-600" />
+              <MessageSquare className="w-4 h-4 text-pink-600" />
               Nội dung chữ / Lời chúc cần in lên sản phẩm
             </label>
             <input 
@@ -403,7 +403,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               value={formData.printContent}
               onChange={handleInputChange}
               placeholder="VD: 'Chúc mừng sinh nhật Mai Anh 20/10' hoặc 'Best Dad Ever'"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
             />
             <p className="text-[11px] text-slate-400 mt-1">Để trống nếu bạn chỉ in hình ảnh</p>
           </div>
@@ -411,7 +411,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           {/* 5. Hạn chót cần hàng */}
           <div>
             <label htmlFor="deadline" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
-              <Calendar className="w-4 h-4 text-blue-600" />
+              <Calendar className="w-4 h-4 text-pink-600" />
               Hạn chót bạn cần nhận hàng
             </label>
             <input 
@@ -421,15 +421,15 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               min={todayMinDate}
               value={formData.deadline}
               onChange={handleInputChange}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
             />
-            <p className="text-[11px] text-slate-400 mt-1">Xưởng sẽ chủ động sắp xếp lịch in gia công kịp ngày cho bạn</p>
+            <p className="text-[11px] text-slate-400 mt-1">Shop sẽ chủ động sắp xếp lịch in gia công kịp ngày cho bạn</p>
           </div>
 
           {/* 6. Ghi chú thiết kế */}
           <div>
             <label htmlFor="notes" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
-              <HelpCircle className="w-4 h-4 text-blue-600" />
+              <HelpCircle className="w-4 h-4 text-pink-600" />
               Ghi chú thêm & Yêu cầu chỉnh sửa ảnh
             </label>
             <textarea 
@@ -439,7 +439,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               value={formData.notes}
               onChange={handleInputChange}
               placeholder="VD: Cắt nền trắng giùm em, làm sáng da, ghép 3 ảnh thành hình trái tim..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400 resize-none"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400 resize-none"
             />
           </div>
 
@@ -447,10 +447,10 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           <div className="pt-1">
             <div className="flex items-center justify-between mb-2">
               <label className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700">
-                <ImageIcon className="w-4 h-4 text-blue-600" />
+                <ImageIcon className="w-4 h-4 text-pink-600" />
                 Tải ảnh in ấn <span className="text-rose-500">*</span>
               </label>
-              <span className="text-xs font-semibold px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md border border-blue-100">
+              <span className="text-xs font-semibold px-2 py-0.5 bg-pink-50 text-pink-600 rounded-md border border-pink-100">
                 {images.length} ảnh đã chọn
               </span>
             </div>
@@ -471,8 +471,8 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               onDrop={handleDrop}
               className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center relative group ${
                 dragOver 
-                  ? 'border-blue-500 bg-blue-50/60 scale-[1.01]' 
-                  : 'border-slate-300 hover:border-blue-500 bg-slate-50/70 hover:bg-blue-50/30'
+                  ? 'border-pink-500 bg-pink-50/60 scale-[1.01]' 
+                  : 'border-slate-300 hover:border-pink-500 bg-slate-50/70 hover:bg-pink-50/30'
               }`}
             >
               <input 
@@ -483,7 +483,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                 onChange={handleFileChange}
                 className="hidden"
               />
-              <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
                 <Upload className="w-6 h-6" />
               </div>
               <p className="text-sm font-semibold text-slate-800 mb-0.5">
@@ -529,7 +529,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-500/25 hover:shadow-blue-500/35 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-600 hover:from-rose-600 hover:to-indigo-700 text-white font-bold text-sm sm:text-base shadow-lg shadow-pink-500/25 hover:shadow-pink-500/35 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
@@ -539,7 +539,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               ) : (
                 <>
                   <Send className="w-5 h-5" />
-                  <span>Gửi Yêu Cầu & Tải Ảnh Lên Xưởng</span>
+                  <span>Gửi Thông Tin Cho Shop</span>
                 </>
               )}
             </button>
@@ -549,12 +549,12 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       </div>
 
       {/* Security and trust footer */}
-      <div className="text-center mt-5 text-xs text-slate-400 space-y-1">
-        <p className="flex items-center justify-center gap-1.5">
+      <div className="text-center mt-5 text-xs text-slate-500 space-y-1">
+        <p className="flex items-center justify-center gap-1.5 font-medium text-slate-600">
           <ShieldCheck className="w-4 h-4 text-emerald-500" />
-          Ảnh được lưu trữ an toàn trực tiếp trên Google Drive chính thức của xưởng
+          Thông tin của bạn luôn được bảo mật an toàn
         </p>
-        <p>© Xưởng In Quà Tặng Cá Nhân Hóa • Phục vụ chuyên nghiệp, tận tâm</p>
+        <p className="text-slate-400 font-medium">Độc đáo - Chất Lượng - Tận Tâm</p>
       </div>
 
     </div>
