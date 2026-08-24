@@ -76,9 +76,9 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, dat
           <button 
             type="button"
             onClick={onClose}
-            className="w-full py-3 px-4 bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-600 hover:from-rose-600 hover:to-indigo-700 text-white font-semibold rounded-xl text-xs sm:text-sm shadow-md shadow-pink-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3 px-4 bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold rounded-2xl text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-4 h-4 text-[#d10074]" />
             Gửi Thêm Đơn Hàng Mới
           </button>
         </div>

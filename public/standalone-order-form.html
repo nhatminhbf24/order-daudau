@@ -46,35 +46,35 @@
   <!-- =============================================================== -->
 
   <!-- Top Header / Banner -->
-  <header class="bg-gradient-to-r from-rose-400 via-pink-400 to-rose-400 text-white pt-8 pb-14 px-4 shadow-sm relative overflow-hidden">
+  <header class="bg-gradient-to-br from-[#fff0f6] via-[#ffe8f2] to-[#fff5f9] border-b border-pink-100 pt-8 pb-14 px-4 shadow-xs relative overflow-hidden">
     <!-- Background subtle circles -->
-    <div class="absolute -right-10 -top-10 w-48 h-48 bg-white/15 rounded-full blur-2xl pointer-events-none"></div>
-    <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-white/15 rounded-full blur-2xl pointer-events-none"></div>
+    <div class="absolute -right-10 -top-10 w-48 h-48 bg-pink-200/40 rounded-full blur-2xl pointer-events-none"></div>
+    <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-pink-200/40 rounded-full blur-2xl pointer-events-none"></div>
     
     <div class="max-w-lg mx-auto text-center relative z-10">
-      <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase mb-3 border border-white/30 text-white shadow-xs">
-        <svg class="w-4 h-4 text-amber-200" fill="currentColor" viewBox="0 0 20 20">
+      <div class="inline-flex items-center gap-2 bg-white/90 shadow-xs px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase mb-3 border border-pink-200 text-[#d10074]">
+        <svg class="w-4 h-4 text-[#d10074]" fill="currentColor" viewBox="0 0 20 20">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
         </svg>
-        Dâu Dâu Shop Quà Tặng In Hình
+        DÂU DÂU SHOP QUÀ TẶNG IN HÌNH
       </div>
-      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2 drop-shadow-xs">Gửi Nội Dung Thiết Kế</h1>
-      <p class="text-rose-50 text-sm max-w-sm mx-auto leading-relaxed font-medium">
-        Điền đầy đủ thông tin để bộ phận thiết kế bản demo gửi qua Zalo để bạn duyệt trước khi in.
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2 text-[#d10074]">Gửi Nội Dung Thiết Kế</h1>
+      <p class="text-slate-600 text-sm max-w-sm mx-auto leading-relaxed font-medium">
+        Bạn hãy điền đủ thông tin, đội ngũ thiết kế sẽ gửi bản demo qua Zalo để bạn duyệt trước khi in nhé.
       </p>
     </div>
   </header>
 
   <!-- Main Container -->
   <main class="max-w-lg mx-auto px-4 -mt-8 relative z-20">
-    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/70 border border-slate-100 p-5 sm:p-7">
+    <div class="bg-white rounded-3xl shadow-xl shadow-rose-100/60 border border-pink-100 p-5 sm:p-7">
       
       <form id="orderForm" class="space-y-5" onsubmit="handleSubmitOrder(event)">
         
-        <!-- 1. Tên Zalo -->
+        <!-- 1. Tên Nick Zalo của bạn -->
         <div>
-          <label for="zaloName" class="block text-sm font-semibold text-slate-700 mb-1.5">
-            Tên Zalo của bạn <span class="text-rose-500">*</span>
+          <label for="zaloName" class="block text-sm font-semibold text-slate-800 mb-1.5">
+            Tên Nick Zalo của bạn <span class="text-rose-500">*</span>
           </label>
           <div class="relative">
             <input 
@@ -82,35 +82,16 @@
               id="zaloName" 
               name="zaloName" 
               required
-              placeholder="VD: Nguyễn Văn A (Nick Zalo đang nhắn shop)"
-              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400"
+              placeholder="VD: Nguyễn Văn A (Tên Zalo đang chat với Shop)"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
             >
           </div>
-          <p class="text-xs text-slate-400 mt-1">Để shop đối chiếu đúng với đoạn chat đang trao đổi</p>
+          <p class="text-xs text-slate-400 mt-1">Giúp Shop đối chiếu nhanh với đoạn chat Zalo</p>
         </div>
 
-        <!-- 2. Số điện thoại / Zalo -->
+        <!-- 2. Loại sản phẩm cần in -->
         <div>
-          <label for="phone" class="block text-sm font-semibold text-slate-700 mb-1.5">
-            Số điện thoại / Zalo <span class="text-rose-500">*</span>
-          </label>
-          <div class="relative">
-            <input 
-              type="tel" 
-              id="phone" 
-              name="phone" 
-              required
-              pattern="^(0|84)(3|5|7|8|9)[0-9]{8}$"
-              placeholder="VD: 0912345678"
-              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400"
-            >
-          </div>
-          <p id="phoneError" class="text-xs text-rose-500 mt-1 hidden font-medium">Số điện thoại không hợp lệ (cần đủ 10 số đầu 03, 05, 07, 08, 09).</p>
-        </div>
-
-        <!-- 3. Loại sản phẩm -->
-        <div>
-          <label for="product" class="block text-sm font-semibold text-slate-700 mb-1.5">
+          <label for="product" class="block text-sm font-semibold text-slate-800 mb-1.5">
             Loại sản phẩm cần in <span class="text-rose-500">*</span>
           </label>
           <div class="relative">
@@ -118,7 +99,7 @@
               id="product" 
               name="product" 
               required
-              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
             >
               <option value="" disabled selected>-- Chọn loại sản phẩm in ấn --</option>
               <option value="Ly sứ">☕ Ly sứ</option>
@@ -137,56 +118,28 @@
           </div>
         </div>
 
-        <!-- 4. Nội dung / Chữ cần in -->
+        <!-- 3. Lời chúc / Ghi chú / Yêu cầu chỉnh sửa ảnh -->
         <div>
-          <label for="printContent" class="block text-sm font-semibold text-slate-700 mb-1.5">
-            Nội dung chữ / Lời chúc cần chèn lên sản phẩm
-          </label>
-          <input 
-            type="text" 
-            id="printContent" 
-            name="printContent" 
-            placeholder="VD: 'Chúc mừng sinh nhật Mai Anh 20.10' hoặc 'Gia đình là số 1'"
-            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400"
-          >
-          <p class="text-xs text-slate-400 mt-1">Để trống nếu bạn chỉ muốn in hình ảnh không cần thêm chữ</p>
-        </div>
-
-        <!-- 5. Hạn chót nhận hàng -->
-        <div>
-          <label for="deadline" class="block text-sm font-semibold text-slate-700 mb-1.5">
-            Hạn chót bạn cần nhận hàng
-          </label>
-          <input 
-            type="date" 
-            id="deadline" 
-            name="deadline"
-            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
-          >
-          <p class="text-xs text-slate-400 mt-1">Giúp Shop ưu tiên tiến độ gia công kịp ngày tặng của bạn</p>
-        </div>
-
-        <!-- 6. Ghi chú / Yêu cầu thiết kế -->
-        <div>
-          <label for="notes" class="block text-sm font-semibold text-slate-700 mb-1.5">
-            Ghi chú thêm & Yêu cầu chỉnh sửa ảnh
+          <label for="notes" class="block text-sm font-semibold text-slate-800 mb-1.5">
+            Lời chúc / Ghi chú / Yêu cầu chỉnh sửa ảnh
           </label>
           <textarea 
             id="notes" 
             name="notes" 
             rows="3" 
-            placeholder="VD: Cắt ghép nền sáng hơn, xếp 3 ảnh thành hàng ngang, chỉnh da sáng tự nhiên..."
-            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400 resize-none"
+            placeholder="VD: 'Chúc mừng sinh nhật Mai Anh 20/10' | Cắt nền trắng, ghép ảnh thành hình trái tim, làm sáng da, gửi sớm giúp mình..."
+            class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400 resize-none"
           ></textarea>
+          <p class="text-xs text-slate-400 mt-1">Nhập nội dung chữ muốn in kèm (nếu có) và ghi chú các yêu cầu thiết kế cho Shop</p>
         </div>
 
-        <!-- 7. Tải ảnh gốc (Multiple File Upload) -->
+        <!-- 4. Tải ảnh in ấn -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label class="block text-sm font-semibold text-slate-700">
-              Chọn ảnh in ấn <span class="text-rose-500">*</span>
+            <label class="block text-sm font-semibold text-slate-800">
+              Tải ảnh in ấn <span class="text-rose-500">*</span>
             </label>
-            <span id="imageCounter" class="text-xs font-semibold px-2 py-0.5 bg-pink-50 text-pink-600 rounded-md">
+            <span id="imageCounter" class="text-xs font-semibold px-2 py-0.5 bg-pink-100/80 text-pink-700 rounded-md border border-pink-200">
               0 ảnh đã chọn
             </span>
           </div>
@@ -204,7 +157,7 @@
           <!-- Dropzone Input -->
           <div 
             id="dropzone" 
-            class="border-2 border-dashed border-slate-300 hover:border-pink-500 bg-slate-50/70 hover:bg-pink-50/30 rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center relative group"
+            class="border-2 border-dashed border-pink-200 hover:border-pink-500 bg-pink-50/20 hover:bg-pink-50/50 rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center relative group"
             onclick="document.getElementById('fileInput').click()"
             ondragover="handleDragOver(event)"
             ondragleave="handleDragLeave(event)"
@@ -223,7 +176,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
               </svg>
             </div>
-            <p class="text-sm font-semibold text-slate-700">Bấm để chọn ảnh</p>
+            <p class="text-sm font-semibold text-slate-800">Bấm để chọn ảnh</p>
           </div>
 
           <!-- Image Preview Gallery -->
@@ -232,15 +185,96 @@
           </div>
         </div>
 
+        <!-- 5. Hình thức nhận hàng -->
+        <div>
+          <label class="block text-sm font-semibold text-slate-800 mb-2">
+            Hình thức nhận hàng <span class="text-rose-500">*</span>
+          </label>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              id="btnShopDelivery"
+              onclick="setDeliveryMode('shop')"
+              class="p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs"
+            >
+              <div class="p-1.5 rounded-xl shrink-0 mt-0.5 bg-pink-500 text-white shadow-xs">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+              </div>
+              <div>
+                <div class="text-xs sm:text-sm">Nhận tại Shop</div>
+                <div class="text-[11px] text-slate-400 font-normal mt-0.5">Đến trực tiếp lấy</div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              id="btnHomeDelivery"
+              onclick="setDeliveryMode('home')"
+              class="p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium"
+            >
+              <div class="p-1.5 rounded-xl shrink-0 mt-0.5 bg-slate-200/80 text-slate-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>
+              </div>
+              <div>
+                <div class="text-xs sm:text-sm">Giao hàng tại nhà</div>
+                <div class="text-[11px] text-slate-400 font-normal mt-0.5">Ship tận nơi toàn quốc</div>
+              </div>
+            </button>
+          </div>
+
+          <!-- Nếu chọn Giao hàng tại nhà -> Nhập SĐT & Địa chỉ -->
+          <div id="homeDeliveryFields" class="mt-3.5 space-y-3 p-3.5 rounded-2xl bg-pink-50/40 border border-pink-200/70 hidden">
+            <div>
+              <label for="phone" class="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
+                Số điện thoại nhận hàng <span class="text-rose-500">*</span>
+              </label>
+              <input 
+                type="tel" 
+                id="phone" 
+                name="phone" 
+                placeholder="VD: 0912345678"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
+              >
+              <p id="phoneError" class="text-xs text-rose-500 mt-1 hidden font-medium">Vui lòng nhập đúng số điện thoại (10 chữ số).</p>
+            </div>
+            <div>
+              <label for="shippingAddress" class="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
+                Địa chỉ giao hàng <span class="text-rose-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="shippingAddress" 
+                name="shippingAddress" 
+                placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."
+                class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Hạn chót nhận hàng -->
+        <div>
+          <label for="deadline" class="block text-sm font-semibold text-slate-800 mb-1.5">
+            Hạn chót bạn cần nhận hàng
+          </label>
+          <input 
+            type="date" 
+            id="deadline" 
+            name="deadline"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
+          >
+          <p class="text-xs text-slate-400 mt-1">Giúp Shop ưu tiên tiến độ gia công kịp ngày tặng của bạn</p>
+        </div>
+
         <!-- Submit Button -->
-        <div class="pt-3">
+        <div class="pt-2">
           <button 
             type="submit" 
             id="submitBtn" 
-            class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-rose-400 via-pink-400 to-rose-400 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-base shadow-md shadow-rose-300/30 hover:shadow-lg hover:shadow-rose-400/40 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+            class="w-full py-3.5 px-6 rounded-2xl bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold text-base shadow-sm hover:shadow-md hover:shadow-pink-500/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
           >
             <span id="btnIcon">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-[#d10074]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
               </svg>
             </span>
@@ -263,12 +297,11 @@
         <button
           type="button"
           onclick="promptGasConfig()"
-          class="inline-flex items-center justify-center p-1 rounded-md text-slate-400 hover:text-pink-600 hover:bg-pink-50 transition-colors"
-          title="Cài đặt Shop"
+          class="inline-flex items-center justify-center p-1 rounded-md text-pink-500 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+          title="Độc đáo - Chất Lượng - Tận Tâm"
         >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
           </svg>
         </button>
         <span>Độc đáo - Chất Lượng - Tận Tâm</span>
@@ -299,7 +332,7 @@
       <div class="space-y-2.5">
         <button 
           onclick="closeSuccessModal()" 
-          class="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm transition-all"
+          class="w-full py-3 px-4 bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold rounded-2xl text-sm transition-all"
         >
           Gửi Thêm Đơn Hàng Mới
         </button>
@@ -311,6 +344,32 @@
   <script>
     // Danh sách các file ảnh đang được chọn
     let selectedFiles = [];
+    let currentDeliveryMethod = 'shop';
+
+    function setDeliveryMode(mode) {
+      currentDeliveryMethod = mode;
+      const btnShop = document.getElementById('btnShopDelivery');
+      const btnHome = document.getElementById('btnHomeDelivery');
+      const homeFields = document.getElementById('homeDeliveryFields');
+
+      if (mode === 'shop') {
+        btnShop.className = 'p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs';
+        btnShop.querySelector('div:first-child').className = 'p-1.5 rounded-xl shrink-0 mt-0.5 bg-pink-500 text-white shadow-xs';
+        
+        btnHome.className = 'p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium';
+        btnHome.querySelector('div:first-child').className = 'p-1.5 rounded-xl shrink-0 mt-0.5 bg-slate-200/80 text-slate-600';
+        
+        homeFields.classList.add('hidden');
+      } else {
+        btnHome.className = 'p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs';
+        btnHome.querySelector('div:first-child').className = 'p-1.5 rounded-xl shrink-0 mt-0.5 bg-pink-500 text-white shadow-xs';
+        
+        btnShop.className = 'p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium';
+        btnShop.querySelector('div:first-child').className = 'p-1.5 rounded-xl shrink-0 mt-0.5 bg-slate-200/80 text-slate-600';
+        
+        homeFields.classList.remove('hidden');
+      }
+    }
 
     // Chặn ngày quá khứ cho ô chọn Hạn nhận hàng
     document.addEventListener('DOMContentLoaded', () => {
@@ -324,17 +383,17 @@
     // Xử lý kéo thả Dropzone
     function handleDragOver(e) {
       e.preventDefault();
-      document.getElementById('dropzone').classList.add('border-blue-500', 'bg-blue-50/50');
+      document.getElementById('dropzone').classList.add('border-pink-500', 'bg-pink-50/60');
     }
 
     function handleDragLeave(e) {
       e.preventDefault();
-      document.getElementById('dropzone').classList.remove('border-blue-500', 'bg-blue-50/50');
+      document.getElementById('dropzone').classList.remove('border-pink-500', 'bg-pink-50/60');
     }
 
     function handleDrop(e) {
       e.preventDefault();
-      document.getElementById('dropzone').classList.remove('border-blue-500', 'bg-blue-50/50');
+      document.getElementById('dropzone').classList.remove('border-pink-500', 'bg-pink-50/60');
       const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
       addFiles(files);
     }
@@ -407,7 +466,7 @@
 
         // Nhãn dung lượng
         const sizeBadge = document.createElement('span');
-        sizeBadge.className = 'absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/60 text-white rounded text-[10px] backdrop-blur-xs';
+        sizeBadge.className = 'absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/60 text-white rounded text-[10px] backdrop-blur-xs font-mono';
         sizeBadge.textContent = formatFileSize(file.size);
 
         item.appendChild(img);
@@ -442,17 +501,27 @@
       e.preventDefault();
 
       const phoneInput = document.getElementById('phone');
-      const phoneVal = phoneInput.value.trim();
+      const phoneVal = phoneInput ? phoneInput.value.trim() : '';
       const phoneError = document.getElementById('phoneError');
+      const shippingAddressInput = document.getElementById('shippingAddress');
+      const shippingAddressVal = shippingAddressInput ? shippingAddressInput.value.trim() : '';
 
-      // Kiểm tra SĐT Việt Nam
+      // Kiểm tra SĐT nếu chọn Giao hàng tại nhà
       const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
-      if (!phoneRegex.test(phoneVal)) {
-        phoneError.classList.remove('hidden');
-        phoneInput.focus();
-        return;
-      } else {
-        phoneError.classList.add('hidden');
+      if (currentDeliveryMethod === 'home') {
+        if (!phoneRegex.test(phoneVal)) {
+          if (phoneError) phoneError.classList.remove('hidden');
+          phoneInput.focus();
+          return;
+        } else if (phoneError) {
+          phoneError.classList.add('hidden');
+        }
+
+        if (!shippingAddressVal) {
+          alert('Vui lòng nhập địa chỉ giao hàng để Shop chuyển phát nhanh!');
+          shippingAddressInput.focus();
+          return;
+        }
       }
 
       // Kiểm tra chọn ảnh
@@ -483,9 +552,10 @@
           zaloName: document.getElementById('zaloName').value.trim(),
           phone: phoneVal,
           product: document.getElementById('product').value,
-          printContent: document.getElementById('printContent').value.trim(),
+          customRequest: document.getElementById('notes').value.trim(),
+          deliveryMethod: currentDeliveryMethod,
+          shippingAddress: currentDeliveryMethod === 'home' ? shippingAddressVal : '',
           deadline: document.getElementById('deadline').value,
-          notes: document.getElementById('notes').value.trim(),
           images: base64Images
         };
 
@@ -509,7 +579,6 @@
             }
           } catch (fetchErr) {
             console.warn('Lưu ý kết nối GAS trực tiếp từ trình duyệt:', fetchErr);
-            // Vẫn mở Modal thành công kèm dữ liệu đã lưu để khách hàng yên tâm
             showSuccessModal(payload, false);
           }
         } else {
@@ -522,7 +591,6 @@
         console.error('Submit Error:', err);
         alert('Có trục trặc khi gửi: ' + err.message);
       } finally {
-        // Khôi phục nút
         submitBtn.disabled = false;
         btnIcon.innerHTML = `
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

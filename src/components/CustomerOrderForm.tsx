@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Upload, X, Image as ImageIcon, Sparkles, AlertCircle, 
   Send, Loader2, ShieldCheck, Phone, User, Tag, 
-  MessageSquare, Calendar, Settings, CheckCircle2,
+  MessageSquare, Calendar, Check, CheckCircle2,
   Truck, Store, MapPin
 } from 'lucide-react';
 import { PRODUCT_CATEGORIES, DEFAULT_GAS_URL } from '../data/constants';
@@ -222,17 +222,27 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate phone
-    const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
-    if (!phoneRegex.test(formData.phone.trim())) {
-      setPhoneError('Vui lòng nhập đúng số điện thoại (10 chữ số)');
-      return;
-    }
+    // Validate if home delivery
+    if (formData.deliveryMethod === 'home') {
+      const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
+      if (!phoneRegex.test(formData.phone.trim())) {
+        setPhoneError('Vui lòng nhập đúng số điện thoại nhận hàng (10 chữ số)');
+        return;
+      }
 
-    // Validate address if home delivery
-    if (formData.deliveryMethod === 'home' && !formData.shippingAddress.trim()) {
-      alert('Vui lòng nhập Địa chỉ nhận hàng để Shop giao hàng tận nơi!');
-      return;
+      if (!formData.shippingAddress.trim()) {
+        alert('Vui lòng nhập Địa chỉ nhận hàng để Shop giao hàng tận nơi!');
+        return;
+      }
+    } else {
+      // If shop delivery but phone entered, check validity
+      if (formData.phone.trim()) {
+        const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
+        if (!phoneRegex.test(formData.phone.trim())) {
+          setPhoneError('Vui lòng nhập đúng số điện thoại (10 chữ số)');
+          return;
+        }
+      }
     }
 
     // Validate images
@@ -245,16 +255,17 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
     const deliveryLabel = formData.deliveryMethod === 'home' ? 'Giao hàng tại nhà' : 'Nhận hàng tại Shop';
     const addressInfo = formData.deliveryMethod === 'home' ? formData.shippingAddress.trim() : 'Nhận tại Shop';
+    const phoneInfo = formData.phone.trim() || (formData.deliveryMethod === 'home' ? '' : 'Nhận tại Shop');
 
     const payload = {
       zaloName: formData.zaloName.trim(),
-      phone: formData.phone.trim(),
+      phone: phoneInfo,
       deliveryMethod: deliveryLabel,
       shippingAddress: addressInfo,
       product: formData.product,
       customRequest: formData.customRequest.trim(),
       printContent: formData.customRequest.trim(),
-      notes: (formData.deliveryMethod === 'home' ? `[Giao tận nơi: ${addressInfo}] ` : `[Nhận tại Shop] `) + formData.customRequest.trim(),
+      notes: (formData.deliveryMethod === 'home' ? `[Giao tận nơi: ${addressInfo} - SĐT: ${phoneInfo}] ` : `[Nhận tại Shop] `) + formData.customRequest.trim(),
       deadline: formData.deadline,
       images: images.map(img => ({
         name: img.name,
@@ -265,7 +276,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
     const fullOrderFormData: OrderFormData = {
       zaloName: formData.zaloName,
-      phone: formData.phone,
+      phone: phoneInfo,
       deliveryMethod: formData.deliveryMethod,
       shippingAddress: formData.shippingAddress,
       product: formData.product,
@@ -428,22 +439,22 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     <div className="w-full max-w-xl mx-auto">
 
       {/* Main Card Container */}
-      <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-xl shadow-rose-100/60 border border-pink-100 overflow-hidden">
         
         {/* Banner Top Header */}
-        <div className="bg-gradient-to-r from-rose-400 via-pink-400 to-rose-400 text-white p-6 sm:p-7 relative overflow-hidden">
-          <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/15 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="bg-gradient-to-br from-[#fff0f6] via-[#ffe8f2] to-[#fff5f9] p-6 sm:p-7 relative overflow-hidden border-b border-pink-100">
+          <div className="absolute -right-8 -top-8 w-40 h-40 bg-pink-200/40 rounded-full blur-2xl pointer-events-none"></div>
           
-          <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-2.5 border border-white/30 text-white shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-amber-200" />
-            Dâu Dâu Shop Quà Tặng In Hình
+          <div className="inline-flex items-center gap-1.5 bg-white/90 shadow-xs px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2.5 border border-pink-200 text-[#d10074]">
+            <Sparkles className="w-3.5 h-3.5 text-[#d10074]" />
+            DÂU DÂU SHOP QUÀ TẶNG IN HÌNH
           </div>
           
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-1.5 drop-shadow-xs">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-1.5 text-[#d10074]">
             Gửi Nội Dung Thiết Kế
           </h2>
-          <p className="text-rose-50 text-xs sm:text-sm leading-relaxed max-w-md font-medium">
-            Điền đầy đủ thông tin để bộ phận thiết kế bản demo gửi qua Zalo để bạn duyệt trước khi in.
+          <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-md font-medium">
+            Bạn hãy điền đủ thông tin, đội ngũ thiết kế sẽ gửi bản demo qua Zalo để bạn duyệt trước khi in nhé.
           </p>
         </div>
 
@@ -467,9 +478,9 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 sm:p-7 space-y-5">
 
-          {/* 1. Tên Zalo */}
+          {/* 1. Tên Nick Zalo của bạn */}
           <div>
-            <label htmlFor="zaloName" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
+            <label htmlFor="zaloName" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
               <User className="w-4 h-4 text-pink-600" />
               Tên Nick Zalo của bạn <span className="text-rose-500">*</span>
             </label>
@@ -481,108 +492,14 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               value={formData.zaloName}
               onChange={handleInputChange}
               placeholder="VD: Nguyễn Văn A (Tên Zalo đang chat với Shop)"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
             />
             <p className="text-[11px] text-slate-400 mt-1">Giúp Shop đối chiếu nhanh với đoạn chat Zalo</p>
           </div>
 
-          {/* 2. Số điện thoại */}
+          {/* 2. Loại sản phẩm cần in */}
           <div>
-            <label htmlFor="phone" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
-              <Phone className="w-4 h-4 text-pink-600" />
-              Số điện thoại / Zalo <span className="text-rose-500">*</span>
-            </label>
-            <input 
-              type="tel" 
-              id="phone" 
-              name="phone" 
-              required
-              value={formData.phone}
-              onChange={handleInputChange}
-              placeholder="VD: 0912345678"
-              className={`w-full px-3.5 py-2.5 rounded-xl border text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 transition-all placeholder:text-slate-400 ${
-                phoneError 
-                  ? 'border-rose-400 bg-rose-50/30 focus:ring-rose-500' 
-                  : 'border-slate-200 bg-slate-50/50 focus:ring-pink-500 focus:border-transparent'
-              }`}
-            />
-            {phoneError && (
-              <p className="text-xs text-rose-500 mt-1 font-medium flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" />
-                {phoneError}
-              </p>
-            )}
-          </div>
-
-          {/* 3. Phương thức nhận hàng: Nhận tại Shop hoặc Giao hàng tại nhà */}
-          <div>
-            <label className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-2">
-              <Truck className="w-4 h-4 text-pink-600" />
-              Hình thức nhận hàng <span className="text-rose-500">*</span>
-            </label>
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => handleDeliveryMethodChange('shop')}
-                className={`p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
-                  formData.deliveryMethod === 'shop'
-                    ? 'border-pink-500 bg-pink-50/70 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs'
-                    : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/70 text-slate-700 font-medium'
-                }`}
-              >
-                <div className={`p-1.5 rounded-xl shrink-0 mt-0.5 ${formData.deliveryMethod === 'shop' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
-                  <Store className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs sm:text-sm">Nhận tại Shop</div>
-                  <div className="text-[11px] text-slate-400 font-normal mt-0.5">Đến trực tiếp lấy</div>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleDeliveryMethodChange('home')}
-                className={`p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
-                  formData.deliveryMethod === 'home'
-                    ? 'border-pink-500 bg-pink-50/70 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs'
-                    : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/70 text-slate-700 font-medium'
-                }`}
-              >
-                <div className={`p-1.5 rounded-xl shrink-0 mt-0.5 ${formData.deliveryMethod === 'home' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
-                  <Truck className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs sm:text-sm">Giao hàng tại nhà</div>
-                  <div className="text-[11px] text-slate-400 font-normal mt-0.5">Ship tận nơi toàn quốc</div>
-                </div>
-              </button>
-            </div>
-
-            {/* Nếu chọn Giao hàng tại nhà -> Nhập địa chỉ giao hàng */}
-            {formData.deliveryMethod === 'home' && (
-              <div className="mt-3 animate-in fade-in slide-in-from-top-1">
-                <label htmlFor="shippingAddress" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
-                  <MapPin className="w-4 h-4 text-pink-600" />
-                  Địa chỉ giao hàng <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="shippingAddress"
-                  name="shippingAddress"
-                  required={formData.deliveryMethod === 'home'}
-                  value={formData.shippingAddress}
-                  onChange={handleInputChange}
-                  placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
-                />
-                <p className="text-[11px] text-slate-400 mt-1">Shipper sẽ giao quà đến tận tay bạn theo địa chỉ này</p>
-              </div>
-            )}
-          </div>
-
-          {/* 4. Sản phẩm */}
-          <div>
-            <label htmlFor="product" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
+            <label htmlFor="product" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
               <Tag className="w-4 h-4 text-pink-600" />
               Loại sản phẩm cần in <span className="text-rose-500">*</span>
             </label>
@@ -592,7 +509,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               required
               value={formData.product}
               onChange={handleInputChange}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
             >
               <option value="" disabled>-- Chọn loại sản phẩm in ấn --</option>
               {PRODUCT_CATEGORIES.map(cat => (
@@ -603,9 +520,9 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             </select>
           </div>
 
-          {/* 5. Gộp trường: Lời chúc/Ghi chú/Yêu cầu chỉnh sửa ảnh */}
+          {/* 3. Lời chúc / Ghi chú / Yêu cầu chỉnh sửa ảnh */}
           <div>
-            <label htmlFor="customRequest" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
+            <label htmlFor="customRequest" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
               <MessageSquare className="w-4 h-4 text-pink-600" />
               Lời chúc / Ghi chú / Yêu cầu chỉnh sửa ảnh
             </label>
@@ -616,39 +533,21 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               value={formData.customRequest}
               onChange={handleInputChange}
               placeholder="VD: 'Chúc mừng sinh nhật Mai Anh 20/10' | Cắt nền trắng, ghép ảnh thành hình trái tim, làm sáng da, gửi sớm giúp mình..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400 resize-none"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400 resize-none"
             />
             <p className="text-[11px] text-slate-400 mt-1">
               Nhập nội dung chữ muốn in kèm (nếu có) và ghi chú các yêu cầu thiết kế cho Shop
             </p>
           </div>
 
-          {/* 6. Hạn chót cần hàng */}
-          <div>
-            <label htmlFor="deadline" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
-              <Calendar className="w-4 h-4 text-pink-600" />
-              Hạn chót bạn cần nhận hàng
-            </label>
-            <input 
-              type="date" 
-              id="deadline" 
-              name="deadline" 
-              min={todayMinDate}
-              value={formData.deadline}
-              onChange={handleInputChange}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
-            />
-            <p className="text-[11px] text-slate-400 mt-1">Shop sẽ chủ động sắp xếp lịch in gia công kịp ngày cho bạn</p>
-          </div>
-
-          {/* 7. Mục tải ảnh gốc */}
+          {/* 4. Tải ảnh in ấn */}
           <div className="pt-1">
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700">
+              <label className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800">
                 <ImageIcon className="w-4 h-4 text-pink-600" />
                 Tải ảnh in ấn <span className="text-rose-500">*</span>
               </label>
-              <span className="text-xs font-semibold px-2 py-0.5 bg-pink-50 text-pink-600 rounded-md border border-pink-100">
+              <span className="text-xs font-semibold px-2 py-0.5 bg-pink-100/80 text-pink-700 rounded-md border border-pink-200">
                 {images.length} ảnh đã chọn
               </span>
             </div>
@@ -672,7 +571,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                   ? 'border-pink-300 bg-pink-50/40 cursor-wait'
                   : dragOver 
                     ? 'border-pink-500 bg-pink-50/60 scale-[1.01]' 
-                    : 'border-slate-300 hover:border-pink-500 bg-slate-50/70 hover:bg-pink-50/30'
+                    : 'border-pink-200 hover:border-pink-500 bg-pink-50/20 hover:bg-pink-50/50'
               }`}
             >
               <input 
@@ -734,21 +633,137 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             )}
           </div>
 
+          {/* 5. Hình thức nhận hàng (Giao hàng tại nhà -> có Số điện thoại & Địa chỉ) */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-2">
+              <Truck className="w-4 h-4 text-pink-600" />
+              Hình thức nhận hàng <span className="text-rose-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => handleDeliveryMethodChange('shop')}
+                className={`p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
+                  formData.deliveryMethod === 'shop'
+                    ? 'border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs'
+                    : 'border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium'
+                }`}
+              >
+                <div className={`p-1.5 rounded-xl shrink-0 mt-0.5 ${formData.deliveryMethod === 'shop' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
+                  <Store className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs sm:text-sm">Nhận tại Shop</div>
+                  <div className="text-[11px] text-slate-400 font-normal mt-0.5">Đến trực tiếp lấy</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDeliveryMethodChange('home')}
+                className={`p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
+                  formData.deliveryMethod === 'home'
+                    ? 'border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs'
+                    : 'border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium'
+                }`}
+              >
+                <div className={`p-1.5 rounded-xl shrink-0 mt-0.5 ${formData.deliveryMethod === 'home' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
+                  <Truck className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs sm:text-sm">Giao hàng tại nhà</div>
+                  <div className="text-[11px] text-slate-400 font-normal mt-0.5">Ship tận nơi toàn quốc</div>
+                </div>
+              </button>
+            </div>
+
+            {/* Nếu chọn Giao hàng tại nhà -> Nhập Số điện thoại nhận hàng + Địa chỉ giao hàng */}
+            {formData.deliveryMethod === 'home' && (
+              <div className="mt-3.5 space-y-3 p-3.5 rounded-2xl bg-pink-50/40 border border-pink-200/70 animate-in fade-in slide-in-from-top-1">
+                {/* Số điện thoại nhận hàng */}
+                <div>
+                  <label htmlFor="phone" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
+                    <Phone className="w-4 h-4 text-pink-600" />
+                    Số điện thoại nhận hàng <span className="text-rose-500">*</span>
+                  </label>
+                  <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone" 
+                    required={formData.deliveryMethod === 'home'}
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="VD: 0912345678"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 transition-all placeholder:text-slate-400 ${
+                      phoneError 
+                        ? 'border-rose-400 bg-rose-50/30 focus:ring-rose-500' 
+                        : 'border-pink-200 bg-white focus:ring-pink-500 focus:border-transparent'
+                    }`}
+                  />
+                  {phoneError && (
+                    <p className="text-xs text-rose-500 mt-1 font-medium flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      {phoneError}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-slate-400 mt-1">Shipper sẽ gọi số này khi giao hàng</p>
+                </div>
+
+                {/* Địa chỉ giao hàng */}
+                <div>
+                  <label htmlFor="shippingAddress" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
+                    <MapPin className="w-4 h-4 text-pink-600" />
+                    Địa chỉ giao hàng <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="shippingAddress"
+                    name="shippingAddress"
+                    required={formData.deliveryMethod === 'home'}
+                    value={formData.shippingAddress}
+                    onChange={handleInputChange}
+                    placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">Shipper sẽ giao quà đến tận tay bạn theo địa chỉ này</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 6. Hạn chót bạn cần nhận hàng */}
+          <div>
+            <label htmlFor="deadline" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
+              <Calendar className="w-4 h-4 text-pink-600" />
+              Hạn chót bạn cần nhận hàng
+            </label>
+            <input 
+              type="date" 
+              id="deadline" 
+              name="deadline" 
+              min={todayMinDate}
+              value={formData.deadline}
+              onChange={handleInputChange}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
+            />
+            <p className="text-[11px] text-slate-400 mt-1">Shop sẽ chủ động sắp xếp lịch in gia công kịp ngày cho bạn</p>
+          </div>
+
           {/* Submit Button */}
           <div className="pt-2">
             <button 
               type="submit" 
               disabled={isSubmitting || isOptimizingImages}
-              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-rose-400 via-pink-400 to-rose-400 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-sm sm:text-base shadow-md shadow-rose-300/30 hover:shadow-lg hover:shadow-rose-400/40 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+              className="w-full py-3.5 px-6 rounded-2xl bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold text-sm sm:text-base shadow-sm hover:shadow-md hover:shadow-pink-500/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                 <>
+                  <Loader2 className="w-5 h-5 animate-spin text-[#d10074]" />
                   <span>Đang gửi thông tin...</span>
                 </>
               ) : (
                 <>
-                  <Send className="w-5 h-5" />
+                  <Send className="w-5 h-5 text-[#d10074]" />
                   <span>Gửi Thông Tin Cho Shop</span>
                 </>
               )}
@@ -769,9 +784,9 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             type="button"
             onClick={onOpenSettings}
             className="inline-flex items-center justify-center p-1 rounded-md text-slate-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
-            title="Cài đặt Shop"
+            title="Độc đáo - Chất Lượng - Tận Tâm"
           >
-            <Settings className="w-3.5 h-3.5" />
+            <Check className="w-3.5 h-3.5 text-pink-500" strokeWidth={2.5} />
           </button>
           <span>Độc đáo - Chất Lượng - Tận Tâm</span>
         </div>
