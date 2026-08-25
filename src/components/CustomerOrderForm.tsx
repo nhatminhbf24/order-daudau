@@ -445,8 +445,8 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
         <div className="bg-gradient-to-br from-[#fff0f6] via-[#ffe8f2] to-[#fff5f9] p-6 sm:p-7 relative overflow-hidden border-b border-pink-100">
           <div className="absolute -right-8 -top-8 w-40 h-40 bg-pink-200/40 rounded-full blur-2xl pointer-events-none"></div>
           
-          <div className="inline-flex items-center gap-1.5 bg-white/90 shadow-xs px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2.5 border border-pink-200 text-[#d10074]">
-            <Sparkles className="w-3.5 h-3.5 text-[#d10074]" />
+          <div className="inline-flex items-center gap-2 bg-white/90 shadow-xs px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-2.5 border border-pink-200 text-[#d10074]">
+            <img src="/favicon.svg" alt="Logo Quà Tặng Biên Hòa" className="w-4 h-4 object-contain" />
             DÂU DÂU SHOP QUÀ TẶNG IN HÌNH
           </div>
           
