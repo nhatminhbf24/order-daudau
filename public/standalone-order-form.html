@@ -76,7 +76,7 @@
           <svg class="w-4 h-4 text-pink-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
           </svg>
-          <span>Đã tự động khôi phục dữ liệu khi bạn chuyển đổi ứng dụng.</span>
+          <span>Đã khôi phục dữ liệu khi bạn chuyển ứng dụng.</span>
         </div>
         <button type="button" onclick="clearDraft()" class="text-[11px] text-pink-700 hover:text-pink-950 font-semibold underline shrink-0 cursor-pointer">
           Nhập lại từ đầu
@@ -104,18 +104,13 @@
 
         <!-- 2. DANH SÁCH SẢN PHẨM -->
         <div class="space-y-3 pt-1 border-t border-pink-100">
-          <div class="flex items-center justify-between pt-2">
-            <div class="flex items-center gap-2">
-              <span class="w-6 h-6 rounded-lg bg-pink-100 text-[#d10074] flex items-center justify-center font-bold text-xs">
-                🏷️
-              </span>
-              <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
-                Danh Sách Sản Phẩm
-              </h3>
-            </div>
-            <span id="itemsSummaryBadge" class="text-xs font-bold px-2.5 py-1 bg-pink-100 text-[#d10074] rounded-full border border-pink-200">
-              1 món in • 0 ảnh
+          <div class="flex items-center gap-2 pt-2">
+            <span class="w-6 h-6 rounded-lg bg-pink-100 text-[#d10074] flex items-center justify-center font-bold text-xs">
+              🏷️
             </span>
+            <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
+              Danh Sách Sản Phẩm
+            </h3>
           </div>
 
           <!-- Container chứa các thẻ món in -->
@@ -682,8 +677,15 @@
       const totalItems = items.reduce((acc, it) => acc + (it.quantity || 1), 0);
       const totalImages = items.reduce((acc, it) => acc + (it.images?.length || 0), 0);
 
-      document.getElementById('itemsSummaryBadge').textContent = `${items.length} món in • ${totalImages} ảnh`;
-      document.getElementById('btnSubmitText').textContent = `Gửi Yêu Cầu Thiết Kế (${items.length} món in • ${totalImages} ảnh)`;
+      const badge = document.getElementById('itemsSummaryBadge');
+      if (badge) {
+        badge.textContent = `${items.length} món in • ${totalImages} ảnh`;
+      }
+      
+      const submitText = document.getElementById('btnSubmitText');
+      if (submitText) {
+        submitText.textContent = `Gửi Yêu Cầu Thiết Kế (${items.length} món in • ${totalImages} ảnh)`;
+      }
     }
 
     function saveDraft() {

@@ -562,7 +562,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           <div className="mx-5 sm:mx-7 mt-4 p-3 bg-pink-50 border border-pink-200 rounded-xl flex items-center justify-between gap-2 text-xs text-pink-900 animate-in fade-in">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-pink-600 shrink-0" />
-              <span>Đã tự động khôi phục dữ liệu khi bạn chuyển đổi ứng dụng.</span>
+              <span>Đã khôi phục dữ liệu khi bạn chuyển ứng dụng.</span>
             </div>
             <button
               type="button"
@@ -601,18 +601,13 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
           {/* 2. DANH SÁCH SẢN PHẨM (MULTI-ITEMS SECTION) */}
           <div className="space-y-4 pt-1">
-            <div className="flex items-center justify-between border-b border-pink-100 pb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-pink-100 text-[#d10074] flex items-center justify-center font-bold text-xs">
-                  <Layers className="w-3.5 h-3.5" />
-                </div>
-                <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
-                  Danh Sách Sản Phẩm
-                </h3>
+            <div className="flex items-center gap-2 border-b border-pink-100 pb-2">
+              <div className="w-6 h-6 rounded-lg bg-pink-100 text-[#d10074] flex items-center justify-center font-bold text-xs">
+                <Layers className="w-3.5 h-3.5" />
               </div>
-              <span className="text-xs font-bold px-2.5 py-1 bg-pink-100 text-[#d10074] rounded-full border border-pink-200">
-                {items.length} món in • {totalImagesCount} ảnh
-              </span>
+              <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
+                Danh Sách Sản Phẩm
+              </h3>
             </div>
 
             {/* Render từng món in */}
@@ -817,9 +812,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                                 >
                                   <X className="w-3 h-3" />
                                 </button>
-                                <span className="absolute bottom-1 left-1 px-1 py-0.5 bg-black/65 text-white rounded text-[9px] backdrop-blur-xs font-mono">
-                                  {formatSize(img.compressedSize || img.size)}
-                                </span>
                               </div>
                             ))}
                           </div>
