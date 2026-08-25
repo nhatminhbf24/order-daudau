@@ -10,17 +10,28 @@ export interface UploadedImage {
   dimensions?: { width: number; height: number };
 }
 
+export interface OrderProductItem {
+  id: string;
+  product: string;
+  quantity: number;
+  customRequest: string;
+  images: UploadedImage[];
+}
+
 export interface OrderFormData {
   zaloName: string;
   phone: string;
   deliveryMethod: 'shop' | 'home';
   shippingAddress: string;
-  product: string;
-  customRequest: string;
-  printContent?: string;
+  recipientPhone?: string;
   deadline: string;
+  items: OrderProductItem[];
+  // Backward compatibility fields
+  product?: string;
+  customRequest?: string;
+  printContent?: string;
   notes?: string;
-  images: UploadedImage[];
+  images?: UploadedImage[];
 }
 
 export interface SubmissionResponse {
@@ -37,6 +48,12 @@ export interface SubmissionResponse {
     savedImages?: number;
     timestamp?: string;
     orderId?: string;
+    items?: Array<{
+      product: string;
+      quantity: number;
+      customRequest?: string;
+      imagesCount: number;
+    }>;
   };
 }
 

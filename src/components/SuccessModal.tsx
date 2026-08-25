@@ -56,6 +56,21 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, dat
             <span className="text-slate-500">Sản phẩm:</span>
             <span className="font-semibold text-pink-600 text-right max-w-[180px] truncate">{data.product || '-'}</span>
           </div>
+
+          {Array.isArray(data.items) && data.items.length > 1 && (
+            <div className="pt-1 border-t border-slate-200/60 space-y-1">
+              <span className="text-slate-500 font-medium block">Chi tiết ({data.items.length} món):</span>
+              <div className="space-y-1 max-h-24 overflow-y-auto pl-1">
+                {data.items.map((it, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-[11px] text-slate-700 bg-white/60 px-2 py-0.5 rounded border border-slate-100">
+                    <span className="font-semibold">{it.quantity > 1 ? `${it.quantity}x ` : ''}{it.product}</span>
+                    <span className="text-slate-500">{it.imagesCount} ảnh</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-between items-center">
             <span className="text-slate-500">Số lượng ảnh:</span>
             <span className="font-semibold text-emerald-600 flex items-center gap-1">

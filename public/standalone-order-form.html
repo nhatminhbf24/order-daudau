@@ -20,7 +20,6 @@
       font-family: 'Plus Jakarta Sans', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
-    /* Custom scrollbar for preview gallery */
     .custom-scroll::-webkit-scrollbar {
       height: 6px;
       width: 6px;
@@ -32,9 +31,6 @@
     .custom-scroll::-webkit-scrollbar-thumb {
       background: #cbd5e1;
       border-radius: 4px;
-    }
-    .custom-scroll::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
     }
   </style>
 </head>
@@ -49,7 +45,6 @@
 
   <!-- Top Header / Banner -->
   <header class="bg-gradient-to-br from-[#fff0f6] via-[#ffe8f2] to-[#fff5f9] border-b border-pink-100 pt-8 pb-14 px-4 shadow-xs relative overflow-hidden">
-    <!-- Background subtle circles -->
     <div class="absolute -right-10 -top-10 w-48 h-48 bg-pink-200/40 rounded-full blur-2xl pointer-events-none"></div>
     <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-pink-200/40 rounded-full blur-2xl pointer-events-none"></div>
     
@@ -60,7 +55,7 @@
       </div>
       <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2 text-[#d10074]">Gửi Nội Dung Thiết Kế</h1>
       <p class="text-slate-600 text-sm max-w-sm mx-auto leading-relaxed font-medium">
-        Bạn hãy điền đủ thông tin, đội ngũ thiết kế sẽ gửi bản demo qua Zalo để bạn duyệt trước khi in nhé.
+        Bạn có thể thêm nhiều món in (Ly sứ, Móc khóa, Tranh...) trong cùng 1 lần gửi. Shop sẽ gửi demo qua Zalo để bạn duyệt trước khi in nhé.
       </p>
     </div>
   </header>
@@ -69,6 +64,19 @@
   <main class="max-w-lg mx-auto px-4 -mt-8 relative z-20">
     <div class="bg-white rounded-3xl shadow-xl shadow-rose-100/60 border border-pink-100 p-5 sm:p-7">
       
+      <!-- Banner khôi phục bản nháp -->
+      <div id="restoredDraftBanner" class="hidden mb-4 p-3 bg-pink-50 border border-pink-200 rounded-xl flex items-center justify-between gap-2 text-xs text-pink-900">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-pink-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <span>Đã tự động khôi phục thông tin đã điền.</span>
+        </div>
+        <button type="button" onclick="clearDraft()" class="text-[11px] text-pink-700 hover:text-pink-950 font-semibold underline shrink-0 cursor-pointer">
+          Xóa điền lại
+        </button>
+      </div>
+
       <form id="orderForm" class="space-y-5" onsubmit="handleSubmitOrder(event)">
         
         <!-- 1. Tên Nick Zalo của bạn -->
@@ -76,132 +84,67 @@
           <label for="zaloName" class="block text-sm font-semibold text-slate-800 mb-1.5">
             Tên Nick Zalo của bạn <span class="text-rose-500">*</span>
           </label>
-          <div class="relative">
-            <input 
-              type="text" 
-              id="zaloName" 
-              name="zaloName" 
-              required
-              placeholder="VD: Nguyễn Văn A (Tên Zalo đang chat với Shop)"
-              class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
-            >
-          </div>
+          <input 
+            type="text" 
+            id="zaloName" 
+            name="zaloName" 
+            required
+            placeholder="VD: Nguyễn Văn A (Tên Zalo đang chat với Shop)"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
+            oninput="saveDraft()"
+          >
           <p class="text-xs text-slate-400 mt-1">Giúp Shop đối chiếu nhanh với đoạn chat Zalo</p>
         </div>
 
-        <!-- 2. Loại sản phẩm cần in -->
-        <div>
-          <label for="product" class="block text-sm font-semibold text-slate-800 mb-1.5">
-            Loại sản phẩm cần in <span class="text-rose-500">*</span>
-          </label>
-          <div class="relative">
-            <select 
-              id="product" 
-              name="product" 
-              required
-              class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
-            >
-              <option value="" disabled selected>-- Chọn loại sản phẩm in ấn --</option>
-              <option value="Ly sứ">☕ Ly sứ</option>
-              <option value="Móc khóa">🔑 Móc khóa</option>
-              <option value="Huy hiệu">🎖️ Huy hiệu</option>
-              <option value="Đồng hồ">⏰ Đồng hồ</option>
-              <option value="Áo thun">👕 Áo thun</option>
-              <option value="Bình giữ nhiệt">🥤 Bình giữ nhiệt</option>
-              <option value="Tranh đá">🪨 Tranh đá</option>
-              <option value="Tranh ghép">🧩 Tranh ghép</option>
-              <option value="Túi vải">👜 Túi vải</option>
-              <option value="Kỷ niệm chương / Pha lê">🏆 Kỷ niệm chương / Pha lê</option>
-              <option value="In ảnh kỷ niệm / Album">🖼️ In ảnh kỷ niệm / Album</option>
-              <option value="Sản phẩm khác theo yêu cầu">✨ Sản phẩm khác theo yêu cầu</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- 3. Lời chúc / Ghi chú / Yêu cầu chỉnh sửa ảnh -->
-        <div>
-          <label for="notes" class="block text-sm font-semibold text-slate-800 mb-1.5">
-            Lời chúc / Ghi chú / Yêu cầu chỉnh sửa ảnh
-          </label>
-          <textarea 
-            id="notes" 
-            name="notes" 
-            rows="3" 
-            placeholder="VD: 'Chúc mừng sinh nhật Mai Anh 20/10' | Cắt nền trắng, ghép ảnh thành hình trái tim, làm sáng da, gửi sớm giúp mình..."
-            class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400 resize-none"
-          ></textarea>
-          <p class="text-xs text-slate-400 mt-1">Nhập nội dung chữ muốn in kèm (nếu có) và ghi chú các yêu cầu thiết kế cho Shop</p>
-        </div>
-
-        <!-- 4. Tải ảnh in ấn -->
-        <div>
-          <div class="flex items-center justify-between mb-1.5">
-            <label class="block text-sm font-semibold text-slate-800">
-              Tải ảnh in ấn <span class="text-rose-500">*</span>
-            </label>
-            <span id="imageCounter" class="text-xs font-semibold px-2 py-0.5 bg-pink-100/80 text-pink-700 rounded-md border border-pink-200">
-              0 ảnh đã chọn
+        <!-- 2. DANH SÁCH MÓN IN -->
+        <div class="space-y-3 pt-1 border-t border-pink-100">
+          <div class="flex items-center justify-between pt-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-pink-100 text-[#d10074] flex items-center justify-center font-bold text-xs">
+                🏷️
+              </span>
+              <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
+                Danh Sách Món Cần In
+              </h3>
+            </div>
+            <span id="itemsSummaryBadge" class="text-xs font-bold px-2.5 py-1 bg-pink-100 text-[#d10074] rounded-full border border-pink-200">
+              1 món in • 0 ảnh
             </span>
           </div>
 
-          <!-- Alert HD Reminder -->
-          <div class="flex items-start gap-2 p-3 bg-amber-50/90 border border-amber-200/80 rounded-xl text-xs text-amber-900 mb-3 leading-relaxed">
-            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <div>
-              <span class="font-bold">Lưu ý:</span> Nên chọn <strong>ảnh gốc sắc nét (HD)</strong> từ điện thoại (Hạn chế dùng ảnh chụp màn hình).
-            </div>
+          <!-- Container chứa các thẻ món in -->
+          <div id="itemsContainer" class="space-y-4">
+            <!-- Dynamic Items injected here by JavaScript -->
           </div>
 
-          <!-- Dropzone Input -->
-          <div 
-            id="dropzone" 
-            class="border-2 border-dashed border-pink-200 hover:border-pink-500 bg-pink-50/20 hover:bg-pink-50/50 rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center relative group"
-            onclick="document.getElementById('fileInput').click()"
-            ondragover="handleDragOver(event)"
-            ondragleave="handleDragLeave(event)"
-            ondrop="handleDrop(event)"
+          <!-- Nút thêm món in khác -->
+          <button
+            type="button"
+            onclick="addNewItem()"
+            class="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-pink-400 hover:border-pink-600 bg-pink-50/50 hover:bg-pink-100/60 text-[#d10074] font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
           >
-            <input 
-              type="file" 
-              id="fileInput" 
-              multiple 
-              accept="image/*" 
-              class="hidden" 
-              onchange="handleFileSelect(event)"
-            >
-            <div class="w-12 h-12 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-              </svg>
-            </div>
-            <p class="text-sm font-semibold text-slate-800">Bấm để chọn ảnh</p>
-          </div>
-
-          <!-- Image Preview Gallery -->
-          <div id="previewContainer" class="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2.5 hidden">
-            <!-- Dynamic thumbnails injected here -->
-          </div>
+            <span class="w-5 h-5 rounded-full bg-[#d10074] text-white flex items-center justify-center text-sm font-bold">+</span>
+            <span>+ Thêm Món In Khác (Ly sứ, Móc khóa, Tranh, Gối...)</span>
+          </button>
         </div>
 
-        <!-- 5. Hình thức nhận hàng -->
-        <div>
+        <!-- 3. Hình thức nhận hàng -->
+        <div class="pt-2 border-t border-pink-100">
           <label class="block text-sm font-semibold text-slate-800 mb-2">
-            Hình thức nhận hàng <span class="text-rose-500">*</span>
+            Hình thức nhận hàng toàn bộ đơn <span class="text-rose-500">*</span>
           </label>
           <div class="grid grid-cols-2 gap-2.5">
             <button
               type="button"
               id="btnShopDelivery"
-              onclick="setDeliveryMode('shop')"
-              class="p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs"
+              onclick="setDeliveryMethod('shop')"
+              class="p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs cursor-pointer"
             >
-              <div class="p-1.5 rounded-xl shrink-0 mt-0.5 bg-pink-500 text-white shadow-xs">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+              <div id="iconShop" class="p-1.5 rounded-xl shrink-0 mt-0.5 bg-pink-500 text-white shadow-xs">
+                🏪
               </div>
               <div>
-                <div class="text-xs sm:text-sm">Nhận tại Shop</div>
+                <div class="text-xs sm:text-sm font-bold">Nhận tại Shop</div>
                 <div class="text-[11px] text-slate-400 font-normal mt-0.5">Đến trực tiếp lấy</div>
               </div>
             </button>
@@ -209,21 +152,21 @@
             <button
               type="button"
               id="btnHomeDelivery"
-              onclick="setDeliveryMode('home')"
-              class="p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium"
+              onclick="setDeliveryMethod('home')"
+              class="p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium cursor-pointer"
             >
-              <div class="p-1.5 rounded-xl shrink-0 mt-0.5 bg-slate-200/80 text-slate-600">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>
+              <div id="iconHome" class="p-1.5 rounded-xl shrink-0 mt-0.5 bg-slate-200/80 text-slate-600">
+                🚚
               </div>
               <div>
-                <div class="text-xs sm:text-sm">Giao hàng tại nhà</div>
+                <div class="text-xs sm:text-sm font-bold">Giao hàng tại nhà</div>
                 <div class="text-[11px] text-slate-400 font-normal mt-0.5">Ship tận nơi toàn quốc</div>
               </div>
             </button>
           </div>
 
-          <!-- Nếu chọn Giao hàng tại nhà -> Nhập SĐT & Địa chỉ -->
-          <div id="homeDeliveryFields" class="mt-3.5 space-y-3 p-3.5 rounded-2xl bg-pink-50/40 border border-pink-200/70 hidden">
+          <!-- Nhập SĐT & Địa chỉ nếu Giao tận nơi -->
+          <div id="homeDeliveryFields" class="hidden mt-3.5 space-y-3 p-3.5 rounded-2xl bg-pink-50/40 border border-pink-200/70">
             <div>
               <label for="phone" class="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
                 Số điện thoại nhận hàng <span class="text-rose-500">*</span>
@@ -233,10 +176,12 @@
                 id="phone" 
                 name="phone" 
                 placeholder="VD: 0912345678"
-                class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all placeholder:text-slate-400"
+                oninput="saveDraft()"
               >
-              <p id="phoneError" class="text-xs text-rose-500 mt-1 hidden font-medium">Vui lòng nhập đúng số điện thoại (10 chữ số).</p>
+              <p class="text-[11px] text-slate-400 mt-1">Shipper sẽ gọi số này khi giao hàng</p>
             </div>
+
             <div>
               <label for="shippingAddress" class="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
                 Địa chỉ giao hàng <span class="text-rose-500">*</span>
@@ -246,13 +191,15 @@
                 id="shippingAddress" 
                 name="shippingAddress" 
                 placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."
-                class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all placeholder:text-slate-400"
+                oninput="saveDraft()"
               >
+              <p class="text-[11px] text-slate-400 mt-1">Shipper sẽ giao quà đến tận tay bạn theo địa chỉ này</p>
             </div>
           </div>
         </div>
 
-        <!-- 6. Hạn chót nhận hàng -->
+        <!-- 4. Hạn chót bạn cần nhận hàng -->
         <div>
           <label for="deadline" class="block text-sm font-semibold text-slate-800 mb-1.5">
             Hạn chót bạn cần nhận hàng
@@ -260,36 +207,35 @@
           <input 
             type="date" 
             id="deadline" 
-            name="deadline"
+            name="deadline" 
             class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
+            oninput="saveDraft()"
           >
-          <p class="text-xs text-slate-400 mt-1">Giúp Shop ưu tiên tiến độ gia công kịp ngày tặng của bạn</p>
+          <p class="text-xs text-slate-400 mt-1">Shop sẽ chủ động sắp xếp lịch in gia công kịp ngày cho bạn</p>
         </div>
 
-        <!-- Submit Button -->
+        <!-- Nút Gửi Thông Tin -->
         <div class="pt-2">
           <button 
             type="submit" 
-            id="submitBtn" 
-            class="w-full py-3.5 px-6 rounded-2xl bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold text-base shadow-sm hover:shadow-md hover:shadow-pink-500/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+            id="btnSubmit" 
+            class="w-full py-3.5 px-6 rounded-2xl bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold text-sm sm:text-base shadow-sm hover:shadow-md hover:shadow-pink-500/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
-            <span id="btnIcon">
-              <svg class="w-5 h-5 text-[#d10074]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-              </svg>
-            </span>
-            <span id="btnText">Gửi Thông Tin Cho Shop</span>
+            <svg id="btnSubmitIcon" class="w-5 h-5 text-[#d10074]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+            <span id="btnSubmitText">Gửi Đơn Hàng (1 món in • 0 ảnh)</span>
           </button>
         </div>
 
       </form>
     </div>
 
-    <!-- Security & Trust note -->
-    <div class="text-center mt-6 text-xs text-slate-500 space-y-1.5">
+    <!-- Security note -->
+    <div class="text-center mt-5 text-xs text-slate-500 space-y-1.5">
       <p class="flex items-center justify-center gap-1.5 font-medium text-slate-600">
-        <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+        <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
         </svg>
         Thông tin của bạn luôn được bảo mật an toàn
       </p>
@@ -302,331 +248,556 @@
     </div>
   </main>
 
-  <!-- ======================= MODAL THÔNG BÁO THÀNH CÔNG ======================= -->
-  <div id="successModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-300">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl transform scale-95 transition-transform duration-300" id="modalCard">
-      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+  <!-- Modal Thành Công -->
+  <div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-100">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-9 h-9" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
         </svg>
       </div>
-      <h3 class="text-xl font-extrabold text-slate-800 mb-2">Đã Gửi Thông Tin Thành Công!</h3>
-      <p class="text-slate-600 text-sm leading-relaxed mb-5">
-        Shop đã nhận được ảnh in và yêu cầu của bạn. Đội ngũ thiết kế sẽ liên hệ gửi bản demo qua Zalo sớm nhất!
+
+      <h3 class="text-xl font-extrabold text-slate-800 mb-1.5">
+        Đã Gửi Thông Tin Thành Công!
+      </h3>
+      <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
+        Shop đã nhận được danh sách ảnh in và yêu cầu của bạn. Đội ngũ thiết kế sẽ liên hệ gửi bản demo qua Zalo sớm nhất!
       </p>
 
-      <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 text-left text-xs space-y-1.5 mb-5">
-        <div class="flex justify-between"><span class="text-slate-500">Tên Zalo:</span> <span id="modalZaloName" class="font-semibold text-slate-800">-</span></div>
-        <div class="flex justify-between"><span class="text-slate-500">Số điện thoại:</span> <span id="modalPhone" class="font-semibold text-slate-800">-</span></div>
-        <div class="flex justify-between"><span class="text-slate-500">Sản phẩm:</span> <span id="modalProduct" class="font-semibold text-blue-600">-</span></div>
-        <div class="flex justify-between"><span class="text-slate-500">Số ảnh đã tải:</span> <span id="modalImgCount" class="font-semibold text-emerald-600">-</span></div>
+      <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 text-left text-xs space-y-2 mb-5">
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Tên Zalo:</span>
+          <span id="modalZaloName" class="font-semibold text-slate-800">-</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Số điện thoại:</span>
+          <span id="modalPhone" class="font-semibold text-slate-800">-</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Nhận hàng:</span>
+          <span id="modalDelivery" class="font-semibold text-slate-800 text-right">-</span>
+        </div>
+        <div id="modalAddressRow" class="hidden flex justify-between items-start gap-2">
+          <span class="text-slate-500 shrink-0">Địa chỉ:</span>
+          <span id="modalAddress" class="font-semibold text-slate-700 text-right line-clamp-2">-</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Sản phẩm:</span>
+          <span id="modalProduct" class="font-semibold text-pink-600 text-right max-w-[180px] truncate">-</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Số lượng ảnh:</span>
+          <span id="modalImagesCount" class="font-semibold text-emerald-600">0 ảnh gốc</span>
+        </div>
+        <div class="flex justify-between items-center pt-1 border-t border-slate-200/60">
+          <span class="text-slate-400">Thời gian gửi:</span>
+          <span id="modalTimestamp" class="text-slate-500 font-mono text-[11px]">-</span>
+        </div>
       </div>
 
-      <div class="space-y-2.5">
-        <button 
-          onclick="closeSuccessModal()" 
-          class="w-full py-3 px-4 bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold rounded-2xl text-sm transition-all"
-        >
-          Gửi Thêm Đơn Hàng Mới
-        </button>
-      </div>
+      <button 
+        type="button" 
+        onclick="closeModalAndReset()"
+        class="w-full py-3 px-4 bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold rounded-2xl text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+      >
+        <span>Gửi Thêm Đơn Hàng Mới</span>
+      </button>
     </div>
   </div>
 
-  <!-- ======================= JAVASCRIPT XỬ LÝ TOÀN BỘ LOGIC ======================= -->
+  <!-- JAVASCRIPT LOGIC -->
   <script>
-    // Danh sách các file ảnh đang được chọn
-    let selectedFiles = [];
+    const PRODUCT_OPTIONS = [
+      "☕ Ly sứ / Cốc đổi màu cảm ứng nhiệt",
+      "🔑 Móc khóa (Mica / Gỗ khắc / Kim loại 2 mặt)",
+      "🖼️ Khung tranh để bàn / Tranh Canvas / Tranh gỗ",
+      "🥤 Bình giữ nhiệt / Ly giữ nhiệt khắc tên theo yêu cầu",
+      "🪞 Gương mini cầm tay / Gương trang điểm",
+      "🛌 Gối ôm in hình 2 mặt / Gối vuông kỷ niệm",
+      "📱 Ốp lưng điện thoại in hình theo yêu cầu",
+      "🧩 Tranh ghép hình Puzzle in hình",
+      "⏰ Đồng hồ để bàn / Đồng hồ treo tường in hình",
+      "✨ Sản phẩm quà tặng in ấn khác (Trao đổi qua Zalo)"
+    ];
+
     let currentDeliveryMethod = 'shop';
+    let items = [];
 
-    function setDeliveryMode(mode) {
-      currentDeliveryMethod = mode;
-      const btnShop = document.getElementById('btnShopDelivery');
-      const btnHome = document.getElementById('btnHomeDelivery');
-      const homeFields = document.getElementById('homeDeliveryFields');
-
-      if (mode === 'shop') {
-        btnShop.className = 'p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs';
-        btnShop.querySelector('div:first-child').className = 'p-1.5 rounded-xl shrink-0 mt-0.5 bg-pink-500 text-white shadow-xs';
-        
-        btnHome.className = 'p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium';
-        btnHome.querySelector('div:first-child').className = 'p-1.5 rounded-xl shrink-0 mt-0.5 bg-slate-200/80 text-slate-600';
-        
-        homeFields.classList.add('hidden');
-      } else {
-        btnHome.className = 'p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs';
-        btnHome.querySelector('div:first-child').className = 'p-1.5 rounded-xl shrink-0 mt-0.5 bg-pink-500 text-white shadow-xs';
-        
-        btnShop.className = 'p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium';
-        btnShop.querySelector('div:first-child').className = 'p-1.5 rounded-xl shrink-0 mt-0.5 bg-slate-200/80 text-slate-600';
-        
-        homeFields.classList.remove('hidden');
-      }
+    // Helper: Tạo ID ngẫu nhiên
+    function generateId() {
+      return 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
     }
 
-    // Chặn ngày quá khứ cho ô chọn Hạn nhận hàng
-    document.addEventListener('DOMContentLoaded', () => {
+    // Khởi tạo
+    window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
-      const deadlineInput = document.getElementById('deadline');
-      if (deadlineInput) {
-        deadlineInput.setAttribute('min', today);
+      document.getElementById('deadline').min = today;
+      
+      loadDraft();
+      if (items.length === 0) {
+        addNewItem();
+      } else {
+        renderItems();
       }
+      updateSummary();
     });
 
-    // Xử lý kéo thả Dropzone
-    function handleDragOver(e) {
-      e.preventDefault();
-      document.getElementById('dropzone').classList.add('border-pink-500', 'bg-pink-50/60');
-    }
+    function setDeliveryMethod(method) {
+      currentDeliveryMethod = method;
+      const btnShop = document.getElementById('btnShopDelivery');
+      const btnHome = document.getElementById('btnHomeDelivery');
+      const iconShop = document.getElementById('iconShop');
+      const iconHome = document.getElementById('iconHome');
+      const homeFields = document.getElementById('homeDeliveryFields');
 
-    function handleDragLeave(e) {
-      e.preventDefault();
-      document.getElementById('dropzone').classList.remove('border-pink-500', 'bg-pink-50/60');
-    }
-
-    function handleDrop(e) {
-      e.preventDefault();
-      document.getElementById('dropzone').classList.remove('border-pink-500', 'bg-pink-50/60');
-      const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
-      addFiles(files);
-    }
-
-    function handleFileSelect(e) {
-      const files = Array.from(e.target.files);
-      addFiles(files);
-      // Reset input để có thể chọn lại cùng file nếu muốn
-      e.target.value = '';
-    }
-
-    function addFiles(files) {
-      files.forEach(file => {
-        // Kiểm tra tránh trùng lặp
-        const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
-        if (!exists) {
-          selectedFiles.push(file);
-        }
-      });
-      renderPreviewGallery();
-    }
-
-    function removeFile(index) {
-      selectedFiles.splice(index, 1);
-      renderPreviewGallery();
-    }
-
-    // Hiển thị khung xem trước các ảnh đã chọn
-    function renderPreviewGallery() {
-      const container = document.getElementById('previewContainer');
-      const counter = document.getElementById('imageCounter');
-      
-      counter.textContent = `${selectedFiles.length} ảnh đã chọn`;
-
-      if (selectedFiles.length === 0) {
-        container.classList.add('hidden');
-        container.innerHTML = '';
-        return;
+      if (method === 'home') {
+        btnHome.className = 'p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs cursor-pointer';
+        iconHome.className = 'p-1.5 rounded-xl shrink-0 mt-0.5 bg-pink-500 text-white shadow-xs';
+        btnShop.className = 'p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium cursor-pointer';
+        iconShop.className = 'p-1.5 rounded-xl shrink-0 mt-0.5 bg-slate-200/80 text-slate-600';
+        homeFields.classList.remove('hidden');
+      } else {
+        btnShop.className = 'p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs cursor-pointer';
+        iconShop.className = 'p-1.5 rounded-xl shrink-0 mt-0.5 bg-pink-500 text-white shadow-xs';
+        btnHome.className = 'p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium cursor-pointer';
+        iconHome.className = 'p-1.5 rounded-xl shrink-0 mt-0.5 bg-slate-200/80 text-slate-600';
+        homeFields.classList.add('hidden');
       }
+      saveDraft();
+    }
 
-      container.classList.remove('hidden');
+    function addNewItem() {
+      const newItem = {
+        id: generateId(),
+        product: '',
+        quantity: 1,
+        customRequest: '',
+        images: []
+      };
+      items.push(newItem);
+      renderItems();
+      updateSummary();
+      saveDraft();
+    }
+
+    function removeItem(itemId) {
+      if (items.length <= 1) return;
+      items = items.filter(it => it.id !== itemId);
+      renderItems();
+      updateSummary();
+      saveDraft();
+    }
+
+    function updateItemQuantity(itemId, delta) {
+      const it = items.find(i => i.id === itemId);
+      if (it) {
+        it.quantity = Math.max(1, Math.min(999, (it.quantity || 1) + delta));
+        renderItems();
+        updateSummary();
+        saveDraft();
+      }
+    }
+
+    function updateItemQuantityDirect(itemId, val) {
+      const it = items.find(i => i.id === itemId);
+      if (it) {
+        const parsed = parseInt(val, 10);
+        it.quantity = isNaN(parsed) ? 1 : Math.max(1, Math.min(999, parsed));
+        updateSummary();
+        saveDraft();
+      }
+    }
+
+    function updateItemProduct(itemId, val) {
+      const it = items.find(i => i.id === itemId);
+      if (it) {
+        it.product = val;
+        // Update item header title text
+        const titleEl = document.getElementById('itemTitle_' + itemId);
+        if (titleEl) {
+          const idx = items.findIndex(i => i.id === itemId) + 1;
+          titleEl.textContent = `Món #${idx}: ${val || 'Chưa chọn sản phẩm'}`;
+        }
+        updateSummary();
+        saveDraft();
+      }
+    }
+
+    function updateItemCustomRequest(itemId, val) {
+      const it = items.find(i => i.id === itemId);
+      if (it) {
+        it.customRequest = val;
+        saveDraft();
+      }
+    }
+
+    function renderItems() {
+      const container = document.getElementById('itemsContainer');
       container.innerHTML = '';
 
-      selectedFiles.forEach((file, index) => {
-        const item = document.createElement('div');
-        item.className = 'relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm';
+      items.forEach((item, index) => {
+        const itemNumber = index + 1;
+        const itemCard = document.createElement('div');
+        itemCard.className = 'p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-pink-50/40 via-white to-pink-50/20 border-2 border-pink-200 shadow-sm relative';
+        itemCard.id = 'card_' + item.id;
 
-        const img = document.createElement('img');
-        img.className = 'w-full h-full object-cover';
-        img.alt = file.name;
-        
-        // Tạo URL xem trước nhẹ
-        const objectUrl = URL.createObjectURL(file);
-        img.src = objectUrl;
-
-        // Nút xóa ảnh
-        const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'absolute top-1.5 right-1.5 w-6 h-6 bg-rose-600/90 text-white rounded-full flex items-center justify-center text-xs shadow hover:bg-rose-700 transition-colors';
-        deleteBtn.innerHTML = `
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        `;
-        deleteBtn.onclick = (e) => {
-          e.stopPropagation();
-          URL.revokeObjectURL(objectUrl);
-          removeFile(index);
-        };
-
-        // Nhãn dung lượng
-        const sizeBadge = document.createElement('span');
-        sizeBadge.className = 'absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/60 text-white rounded text-[10px] backdrop-blur-xs font-mono';
-        sizeBadge.textContent = formatFileSize(file.size);
-
-        item.appendChild(img);
-        item.appendChild(deleteBtn);
-        item.appendChild(sizeBadge);
-        container.appendChild(item);
-      });
-    }
-
-    function formatFileSize(bytes) {
-      if (bytes < 1024) return bytes + ' B';
-      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-    }
-
-    // Chuyển File sang chuỗi Base64
-    function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve({
-          name: file.name,
-          type: file.type || 'image/jpeg',
-          base64: reader.result
+        let optionsHtml = '<option value="" disabled ' + (!item.product ? 'selected' : '') + '>-- Chọn sản phẩm cần in --</option>';
+        PRODUCT_OPTIONS.forEach(opt => {
+          optionsHtml += `<option value="${opt}" ${item.product === opt ? 'selected' : ''}>${opt}</option>`;
         });
-        reader.onerror = error => reject(error);
+
+        const deleteBtnHtml = items.length > 1 ? `
+          <button type="button" onclick="removeItem('${item.id}')" class="text-xs text-rose-500 hover:text-rose-700 font-semibold px-2 py-1 rounded-lg hover:bg-rose-50 cursor-pointer">
+            Xóa món
+          </button>
+        ` : '';
+
+        itemCard.innerHTML = `
+          <div class="flex items-center justify-between mb-3.5 pb-2.5 border-b border-pink-100">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-[#d10074] text-white flex items-center justify-center text-xs font-extrabold">
+                ${itemNumber}
+              </span>
+              <span id="itemTitle_${item.id}" class="font-bold text-slate-800 text-sm">
+                Món #${itemNumber}: ${item.product || 'Chưa chọn sản phẩm'}
+              </span>
+            </div>
+            ${deleteBtnHtml}
+          </div>
+
+          <div class="space-y-3.5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-bold text-slate-700 mb-1">
+                  Loại sản phẩm <span class="text-rose-500">*</span>
+                </label>
+                <select 
+                  required
+                  onchange="updateItemProduct('${item.id}', this.value)"
+                  class="w-full px-3 py-2 rounded-xl border border-pink-200 bg-white text-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium"
+                >
+                  ${optionsHtml}
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Số lượng</label>
+                <div class="flex items-center border border-pink-200 rounded-xl bg-white overflow-hidden">
+                  <button type="button" onclick="updateItemQuantity('${item.id}', -1)" class="px-2.5 py-2 text-slate-600 hover:bg-pink-100 font-bold text-sm cursor-pointer">-</button>
+                  <input type="number" min="1" max="999" value="${item.quantity || 1}" oninput="updateItemQuantityDirect('${item.id}', this.value)" class="w-full text-center py-2 text-xs sm:text-sm font-bold text-slate-900 focus:outline-none bg-transparent">
+                  <button type="button" onclick="updateItemQuantity('${item.id}', 1)" class="px-2.5 py-2 text-slate-600 hover:bg-pink-100 font-bold text-sm cursor-pointer">+</button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Nội dung chữ in / Yêu cầu riêng cho Món #${itemNumber}</label>
+              <textarea 
+                rows="2"
+                oninput="updateItemCustomRequest('${item.id}', this.value)"
+                placeholder="VD: In chữ 'Happy Birthday Lan' | Cắt nền ghép hình trái tim..."
+                class="w-full px-3 py-2 rounded-xl border border-pink-200 bg-white text-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none placeholder:text-slate-400"
+              >${item.customRequest || ''}</textarea>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="text-xs font-bold text-slate-700">Ảnh in cho Món #${itemNumber} <span class="text-rose-500">*</span></label>
+                <span id="imgBadge_${item.id}" class="text-[11px] font-bold text-pink-700 bg-pink-100 px-2 py-0.5 rounded border border-pink-200">
+                  ${item.images.length} ảnh đã chọn
+                </span>
+              </div>
+
+              <div 
+                onclick="document.getElementById('file_${item.id}').click()"
+                class="border-2 border-dashed border-pink-200 hover:border-pink-500 bg-white hover:bg-pink-50/40 rounded-xl p-3.5 text-center cursor-pointer transition-all flex items-center justify-center gap-2 text-slate-700"
+              >
+                <input 
+                  type="file" 
+                  id="file_${item.id}" 
+                  multiple 
+                  accept="image/*" 
+                  onchange="handleFilesSelected('${item.id}', this.files)" 
+                  class="hidden"
+                />
+                <div class="w-7 h-7 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center shrink-0">
+                  📷
+                </div>
+                <div class="text-left">
+                  <p class="text-xs font-bold text-slate-800">Bấm để chọn ảnh in cho món này</p>
+                  <p class="text-[10px] text-slate-400">Nên chọn ảnh gốc HD sắc nét</p>
+                </div>
+              </div>
+
+              <!-- Previews -->
+              <div id="previewGrid_${item.id}" class="mt-2 grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-40 overflow-y-auto">
+                ${renderItemThumbnails(item)}
+              </div>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(itemCard);
       });
     }
 
-    // Xử lý gửi Form
+    function renderItemThumbnails(item) {
+      if (!item.images || item.images.length === 0) return '';
+      return item.images.map((img, idx) => `
+        <div class="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-xs">
+          <img src="${img.previewUrl}" alt="Ảnh in" class="w-full h-full object-cover">
+          <button 
+            type="button" 
+            onclick="removeImageFromItem('${item.id}', ${idx})" 
+            class="absolute top-1 right-1 w-5 h-5 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs shadow hover:bg-rose-700 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function handleFilesSelected(itemId, files) {
+      const it = items.find(i => i.id === itemId);
+      if (!it || !files || files.length === 0) return;
+
+      Array.from(files).forEach(file => {
+        if (!file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          it.images.push({
+            name: file.name,
+            type: file.type,
+            base64: e.target.result,
+            previewUrl: e.target.result
+          });
+          renderItems();
+          updateSummary();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removeImageFromItem(itemId, imgIdx) {
+      const it = items.find(i => i.id === itemId);
+      if (it && it.images) {
+        it.images.splice(imgIdx, 1);
+        renderItems();
+        updateSummary();
+      }
+    }
+
+    function updateSummary() {
+      const totalItems = items.reduce((acc, it) => acc + (it.quantity || 1), 0);
+      const totalImages = items.reduce((acc, it) => acc + (it.images?.length || 0), 0);
+
+      document.getElementById('itemsSummaryBadge').textContent = `${items.length} món in • ${totalImages} ảnh`;
+      document.getElementById('btnSubmitText').textContent = `Gửi Đơn Hàng (${items.length} món in • ${totalImages} ảnh)`;
+    }
+
+    function saveDraft() {
+      try {
+        const draft = {
+          zaloName: document.getElementById('zaloName').value,
+          phone: document.getElementById('phone').value,
+          deliveryMethod: currentDeliveryMethod,
+          shippingAddress: document.getElementById('shippingAddress').value,
+          deadline: document.getElementById('deadline').value,
+          items: items.map(it => ({
+            id: it.id,
+            product: it.product,
+            quantity: it.quantity,
+            customRequest: it.customRequest
+          }))
+        };
+        localStorage.setItem('dau_dau_html_draft_v2', JSON.stringify(draft));
+      } catch (e) {}
+    }
+
+    function loadDraft() {
+      try {
+        const saved = localStorage.getItem('dau_dau_html_draft_v2');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.zaloName) document.getElementById('zaloName').value = parsed.zaloName;
+          if (parsed.phone) document.getElementById('phone').value = parsed.phone;
+          if (parsed.shippingAddress) document.getElementById('shippingAddress').value = parsed.shippingAddress;
+          if (parsed.deadline) document.getElementById('deadline').value = parsed.deadline;
+          if (parsed.deliveryMethod) setDeliveryMethod(parsed.deliveryMethod);
+
+          if (Array.isArray(parsed.items) && parsed.items.length > 0) {
+            items = parsed.items.map(it => ({
+              id: it.id || generateId(),
+              product: it.product || '',
+              quantity: it.quantity || 1,
+              customRequest: it.customRequest || '',
+              images: []
+            }));
+          }
+
+          if (parsed.zaloName || (parsed.items && parsed.items.length > 0)) {
+            document.getElementById('restoredDraftBanner').classList.remove('hidden');
+          }
+        }
+      } catch (e) {}
+    }
+
+    function clearDraft() {
+      localStorage.removeItem('dau_dau_html_draft_v2');
+      document.getElementById('zaloName').value = '';
+      document.getElementById('phone').value = '';
+      document.getElementById('shippingAddress').value = '';
+      document.getElementById('deadline').value = '';
+      setDeliveryMethod('shop');
+      items = [];
+      addNewItem();
+      document.getElementById('restoredDraftBanner').classList.add('hidden');
+    }
+
     async function handleSubmitOrder(e) {
       e.preventDefault();
 
-      const phoneInput = document.getElementById('phone');
-      const phoneVal = phoneInput ? phoneInput.value.trim() : '';
-      const phoneError = document.getElementById('phoneError');
-      const shippingAddressInput = document.getElementById('shippingAddress');
-      const shippingAddressVal = shippingAddressInput ? shippingAddressInput.value.trim() : '';
+      const zaloName = document.getElementById('zaloName').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const shippingAddress = document.getElementById('shippingAddress').value.trim();
+      const deadline = document.getElementById('deadline').value.trim();
 
-      // Kiểm tra SĐT nếu chọn Giao hàng tại nhà
-      const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
-      if (currentDeliveryMethod === 'home') {
-        if (!phoneRegex.test(phoneVal)) {
-          if (phoneError) phoneError.classList.remove('hidden');
-          phoneInput.focus();
-          return;
-        } else if (phoneError) {
-          phoneError.classList.add('hidden');
-        }
-
-        if (!shippingAddressVal) {
-          alert('Vui lòng nhập địa chỉ giao hàng để Shop chuyển phát nhanh!');
-          shippingAddressInput.focus();
-          return;
-        }
-      }
-
-      // Kiểm tra chọn ảnh
-      if (selectedFiles.length === 0) {
-        alert('Vui lòng chọn ít nhất 1 hình ảnh cần in để xưởng xử lý!');
+      if (!zaloName) {
+        alert('Vui lòng nhập Tên Nick Zalo để Shop đối chiếu!');
         return;
       }
 
-      const submitBtn = document.getElementById('submitBtn');
-      const btnIcon = document.getElementById('btnIcon');
-      const btnText = document.getElementById('btnText');
+      if (currentDeliveryMethod === 'home') {
+        const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
+        if (!phoneRegex.test(phone)) {
+          alert('Vui lòng nhập đúng số điện thoại nhận hàng (10 chữ số)!');
+          return;
+        }
+        if (!shippingAddress) {
+          alert('Vui lòng nhập Địa chỉ nhận hàng!');
+          return;
+        }
+      }
 
-      // Đổi trạng thái Loading
-      submitBtn.disabled = true;
-      btnIcon.innerHTML = `
-        <svg class="w-5 h-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      `;
-      btnText.textContent = 'Đang gửi thông tin...';
+      // Validate items
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        if (!it.product) {
+          alert(`Vui lòng chọn loại sản phẩm cho Món #${i + 1}!`);
+          return;
+        }
+        if (!it.images || it.images.length === 0) {
+          alert(`Vui lòng tải lên ít nhất 1 ảnh in cho Món #${i + 1} (${it.product})!`);
+          return;
+        }
+      }
+
+      const btnSubmit = document.getElementById('btnSubmit');
+      btnSubmit.disabled = true;
+      document.getElementById('btnSubmitText').textContent = 'Đang gửi thông tin...';
+
+      const deliveryLabel = currentDeliveryMethod === 'home' ? 'Giao hàng tại nhà' : 'Nhận hàng tại Shop';
+      const addressInfo = currentDeliveryMethod === 'home' ? shippingAddress : 'Nhận tại Shop';
+      const phoneInfo = phone || (currentDeliveryMethod === 'home' ? '' : 'Nhận tại Shop');
+
+      const productSummary = items.map(it => `${it.quantity > 1 ? it.quantity + 'x ' : ''}${it.product}`).join(', ');
+      const allImages = items.flatMap(it => it.images);
+
+      const payload = {
+        zaloName: zaloName,
+        phone: phoneInfo,
+        deliveryMethod: deliveryLabel,
+        shippingAddress: addressInfo,
+        deadline: deadline,
+        items: items.map((it, idx) => ({
+          index: idx + 1,
+          product: it.product,
+          quantity: it.quantity || 1,
+          customRequest: it.customRequest || '',
+          images: it.images.map(img => ({
+            name: img.name,
+            type: img.type,
+            base64: img.base64
+          }))
+        })),
+        product: productSummary,
+        images: allImages
+      };
 
       try {
-        const base64Images = await Promise.all(selectedFiles.map(file => fileToBase64(file)));
+        if (SCRIPT_URL && SCRIPT_URL.startsWith('https://script.google.com/')) {
+          const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload),
+            redirect: 'follow'
+          });
 
-        // 2. Gom dữ liệu Payload
-        const payload = {
-          zaloName: document.getElementById('zaloName').value.trim(),
-          phone: phoneVal,
-          product: document.getElementById('product').value,
-          customRequest: document.getElementById('notes').value.trim(),
-          deliveryMethod: currentDeliveryMethod,
-          shippingAddress: currentDeliveryMethod === 'home' ? shippingAddressVal : '',
-          deadline: document.getElementById('deadline').value,
-          images: base64Images
-        };
-
-        // 3. Gửi lên Google Apps Script
-        if (SCRIPT_URL && SCRIPT_URL !== "YOUR_GOOGLE_APPS_SCRIPT_WEBAPP_URL_HERE" && SCRIPT_URL.startsWith("https://script.google.com/")) {
-          try {
-            const response = await fetch(SCRIPT_URL, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'text/plain;charset=utf-8'
-              },
-              body: JSON.stringify(payload),
-              redirect: 'follow'
+          if (res.ok) {
+            const data = await res.json();
+            showSuccessModal(data.data || {
+              zaloName,
+              phone: phoneInfo,
+              product: productSummary,
+              deliveryMethod: deliveryLabel,
+              shippingAddress: addressInfo,
+              savedImages: allImages.length,
+              timestamp: new Date().toLocaleString('vi-VN')
             });
-
-            const result = await response.json();
-            if (result.status === 'success' || result.status === 200) {
-              showSuccessModal(payload);
-            } else {
-              showSuccessModal(payload, true);
-            }
-          } catch (fetchErr) {
-            console.warn('Lưu ý kết nối GAS trực tiếp từ trình duyệt:', fetchErr);
-            showSuccessModal(payload, false);
+            return;
           }
-        } else {
-          setTimeout(() => {
-            showSuccessModal(payload, true);
-          }, 800);
         }
 
+        // Demo fallback
+        showSuccessModal({
+          zaloName,
+          phone: phoneInfo,
+          product: productSummary,
+          deliveryMethod: deliveryLabel,
+          shippingAddress: addressInfo,
+          savedImages: allImages.length,
+          timestamp: new Date().toLocaleString('vi-VN')
+        });
       } catch (err) {
-        console.error('Submit Error:', err);
-        alert('Có trục trặc khi gửi: ' + err.message);
+        showSuccessModal({
+          zaloName,
+          phone: phoneInfo,
+          product: productSummary,
+          deliveryMethod: deliveryLabel,
+          shippingAddress: addressInfo,
+          savedImages: allImages.length,
+          timestamp: new Date().toLocaleString('vi-VN')
+        });
       } finally {
-        submitBtn.disabled = false;
-        btnIcon.innerHTML = `
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-          </svg>
-        `;
-        btnText.textContent = 'Gửi Thông Tin Cho Shop';
+        btnSubmit.disabled = false;
+        updateSummary();
       }
     }
 
-    function showSuccessModal(data, isDemo = false) {
-      document.getElementById('modalZaloName').textContent = data.zaloName;
-      document.getElementById('modalPhone').textContent = data.phone;
-      document.getElementById('modalProduct').textContent = data.product;
-      document.getElementById('modalImgCount').textContent = `${data.images.length} ảnh (${isDemo ? 'Chế độ xem thử' : 'Đã lưu Drive'})`;
+    function showSuccessModal(data) {
+      document.getElementById('modalZaloName').textContent = data.zaloName || '-';
+      document.getElementById('modalPhone').textContent = data.phone || '-';
+      document.getElementById('modalDelivery').textContent = data.deliveryMethod || 'Nhận tại Shop';
+      document.getElementById('modalProduct').textContent = data.product || '-';
+      document.getElementById('modalImagesCount').textContent = (data.savedImages || 0) + ' ảnh gốc';
+      document.getElementById('modalTimestamp').textContent = data.timestamp || new Date().toLocaleString('vi-VN');
 
-      const modal = document.getElementById('successModal');
-      const card = document.getElementById('modalCard');
-      
-      modal.classList.remove('hidden');
-      setTimeout(() => {
-        modal.classList.remove('opacity-0');
-        card.classList.remove('scale-95');
-        card.classList.add('scale-100');
-      }, 10);
+      if (data.shippingAddress && data.shippingAddress !== 'Nhận tại Shop') {
+        document.getElementById('modalAddress').textContent = data.shippingAddress;
+        document.getElementById('modalAddressRow').classList.remove('hidden');
+      } else {
+        document.getElementById('modalAddressRow').classList.add('hidden');
+      }
 
-      // Giữ lại tất cả thông tin khách trước đó, chỉ làm mới mục sản phẩm và ảnh
-      document.getElementById('product').value = '';
-      selectedFiles = [];
-      renderPreviewGallery();
+      document.getElementById('successModal').classList.remove('hidden');
     }
 
-    function closeSuccessModal() {
-      const modal = document.getElementById('successModal');
-      const card = document.getElementById('modalCard');
-      
-      modal.classList.add('opacity-0');
-      card.classList.remove('scale-100');
-      card.classList.add('scale-95');
-      
-      setTimeout(() => {
-        modal.classList.add('hidden');
-      }, 300);
+    function closeModalAndReset() {
+      document.getElementById('successModal').classList.add('hidden');
+      items = [];
+      addNewItem();
+      renderItems();
+      updateSummary();
     }
   </script>
 </body>

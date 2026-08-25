@@ -47,7 +47,7 @@ async function startServer() {
   app.post('/api/submit-order', async (req, res) => {
     try {
       const { scriptUrl, ...payload } = req.body;
-      const { zaloName, phone, product, deliveryMethod, shippingAddress, customRequest, printContent, deadline, notes, images } = payload;
+      const { zaloName, phone, product, deliveryMethod, shippingAddress, customRequest, printContent, deadline, notes, images, items } = payload;
 
       if (!zaloName || !phone) {
         return res.status(400).json({
@@ -58,10 +58,19 @@ async function startServer() {
 
       const orderId = 'ORD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
       const timestamp = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-      const imagesCount = Array.isArray(images) ? images.length : 0;
+      
+      // Calculate total images count across all items or fallback
+      let imagesCount = 0;
+      if (Array.isArray(items) && items.length > 0) {
+        imagesCount = items.reduce((acc: number, it: any) => acc + (Array.isArray(it.images) ? it.images.length : 0), 0);
+      } else if (Array.isArray(images)) {
+        imagesCount = images.length;
+      }
+
       const activeDeliveryMethod = deliveryMethod || 'Nhận hàng tại Shop';
       const activeShippingAddress = shippingAddress || (deliveryMethod === 'Giao hàng tại nhà' ? '' : 'Nhận tại Shop');
       const activeCustomRequest = customRequest || printContent || notes || '';
+      const displayProduct = product || (Array.isArray(items) ? items.map((it: any) => `${it.quantity > 1 ? it.quantity + 'x ' : ''}${it.product}`).join(', ') : 'Khác');
 
       // If user provided a real Google Apps Script Web App URL or fallback to default
       const cleanScriptUrl = (scriptUrl || DEFAULT_GAS_URL).trim();

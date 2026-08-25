@@ -3,10 +3,11 @@ import {
   Upload, X, Image as ImageIcon, Sparkles, AlertCircle, 
   Send, Loader2, ShieldCheck, Phone, User, Tag, 
   MessageSquare, Calendar, Check, CheckCircle2,
-  Truck, Store, MapPin
+  Truck, Store, MapPin, Plus, Trash2, Layers,
+  ShoppingBag, HelpCircle
 } from 'lucide-react';
 import { PRODUCT_CATEGORIES, DEFAULT_GAS_URL } from '../data/constants';
-import { UploadedImage, OrderFormData, SubmissionResponse } from '../types';
+import { UploadedImage, OrderFormData, OrderProductItem, SubmissionResponse } from '../types';
 import { compressImageForA4Print } from '../utils/imageOptimizer';
 
 interface CustomerOrderFormProps {
@@ -14,33 +15,38 @@ interface CustomerOrderFormProps {
   onSuccess: (data: SubmissionResponse['data'], rawForm: OrderFormData) => void;
 }
 
-const DRAFT_STORAGE_KEY = 'dau_dau_order_form_draft';
+const DRAFT_STORAGE_KEY = 'dau_dau_order_form_multi_draft_v2';
+
+const createDefaultItem = (index = 0): OrderProductItem => ({
+  id: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7) + '_' + index,
+  product: '',
+  quantity: 1,
+  customRequest: '',
+  images: [],
+});
 
 export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({ 
   scriptUrl, 
   onSuccess
 }) => {
-  const [formData, setFormData] = useState({
-    zaloName: '',
-    phone: '',
-    deliveryMethod: 'shop' as 'shop' | 'home',
-    shippingAddress: '',
-    product: '',
-    customRequest: '',
-    deadline: '',
-  });
+  const [zaloName, setZaloName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [deliveryMethod, setDeliveryMethod] = useState<'shop' | 'home'>('shop');
+  const [shippingAddress, setShippingAddress] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [items, setItems] = useState<OrderProductItem[]>([createDefaultItem(0)]);
 
-  const [images, setImages] = useState<UploadedImage[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isOptimizingImages, setIsOptimizingImages] = useState(false);
+  const [optimizingItemId, setOptimizingItemId] = useState<string | null>(null);
   const [restoredDraft, setRestoredDraft] = useState(false);
   const [phoneError, setPhoneError] = useState('');
-  const [dragOver, setDragOver] = useState(false);
+  const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [todayMinDate, setTodayMinDate] = useState('');
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Refs for hidden file inputs mapped by itemId
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
-  // 1. Khôi phục dữ liệu từ localStorage khi người dùng chuyển qua lại app Zalo
+  // 1. Khôi phục bản nháp từ localStorage
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     setTodayMinDate(today);
@@ -50,22 +56,23 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       if (savedDraft) {
         const parsed = JSON.parse(savedDraft);
         if (parsed && typeof parsed === 'object') {
-          // Xử lý backward compatibility nếu bản nháp cũ có printContent hoặc notes
-          const mergedRequest = parsed.customRequest || [parsed.printContent, parsed.notes].filter(Boolean).join(' - ') || '';
+          if (parsed.zaloName) setZaloName(parsed.zaloName);
+          if (parsed.phone) setPhone(parsed.phone);
+          if (parsed.deliveryMethod) setDeliveryMethod(parsed.deliveryMethod === 'home' ? 'home' : 'shop');
+          if (parsed.shippingAddress) setShippingAddress(parsed.shippingAddress);
+          if (parsed.deadline) setDeadline(parsed.deadline);
 
-          setFormData(prev => ({
-            ...prev,
-            zaloName: parsed.zaloName || '',
-            phone: parsed.phone || '',
-            deliveryMethod: (parsed.deliveryMethod === 'home' ? 'home' : 'shop'),
-            shippingAddress: parsed.shippingAddress || '',
-            product: parsed.product || '',
-            customRequest: mergedRequest,
-            deadline: parsed.deadline || '',
-          }));
+          if (Array.isArray(parsed.items) && parsed.items.length > 0) {
+            setItems(parsed.items.map((it: any, idx: number) => ({
+              id: it.id || ('item_restored_' + idx),
+              product: it.product || '',
+              quantity: Number(it.quantity) || 1,
+              customRequest: it.customRequest || '',
+              images: [], // Images are not kept in localStorage for memory limit
+            })));
+          }
 
-          const hasContent = Object.values(parsed).some((v: any) => typeof v === 'string' && v.trim().length > 0);
-          if (hasContent) {
+          if (parsed.zaloName || parsed.phone || (parsed.items && parsed.items.length > 0)) {
             setRestoredDraft(true);
           }
         }
@@ -75,62 +82,120 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     }
   }, []);
 
-  // 2. Tự động lưu theo thời gian thực mỗi khi gõ
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => {
-      const next = { ...prev, [name]: value };
-      try {
-        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(next));
-      } catch (err) {}
-      return next;
-    });
-
-    if (name === 'phone') {
-      const cleanPhone = value.trim();
-      const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
-      if (cleanPhone && !phoneRegex.test(cleanPhone)) {
-        setPhoneError('Số điện thoại không hợp lệ (cần 10 số, đầu 03, 05, 07, 08, 09)');
-      } else {
-        setPhoneError('');
-      }
-    }
+  // 2. Tự động lưu bản nháp (không lưu ảnh base64 để tránh đầy localStorage)
+  const saveDraft = (
+    nextZalo = zaloName,
+    nextPhone = phone,
+    nextDelivery = deliveryMethod,
+    nextAddress = shippingAddress,
+    nextDeadline = deadline,
+    nextItems = items
+  ) => {
+    try {
+      const draftPayload = {
+        zaloName: nextZalo,
+        phone: nextPhone,
+        deliveryMethod: nextDelivery,
+        shippingAddress: nextAddress,
+        deadline: nextDeadline,
+        items: nextItems.map(it => ({
+          id: it.id,
+          product: it.product,
+          quantity: it.quantity,
+          customRequest: it.customRequest,
+        }))
+      };
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftPayload));
+    } catch (e) {}
   };
 
-  const handleDeliveryMethodChange = (method: 'shop' | 'home') => {
-    setFormData(prev => {
-      const next = { ...prev, deliveryMethod: method };
-      try {
-        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(next));
-      } catch (err) {}
-      return next;
-    });
+  const handlePhoneChange = (val: string) => {
+    setPhone(val);
+    const cleanPhone = val.trim();
+    const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
+    if (cleanPhone && !phoneRegex.test(cleanPhone)) {
+      setPhoneError('Số điện thoại không hợp lệ (cần 10 số, đầu 03, 05, 07, 08, 09)');
+    } else {
+      setPhoneError('');
+    }
+    saveDraft(zaloName, val, deliveryMethod, shippingAddress, deadline, items);
   };
 
   const handleClearDraft = () => {
     try {
       localStorage.removeItem(DRAFT_STORAGE_KEY);
-      setFormData({
-        zaloName: '',
-        phone: '',
-        deliveryMethod: 'shop',
-        shippingAddress: '',
-        product: '',
-        customRequest: '',
-        deadline: '',
-      });
+      setZaloName('');
+      setPhone('');
+      setDeliveryMethod('shop');
+      setShippingAddress('');
+      setDeadline('');
+      setItems([createDefaultItem(0)]);
       setRestoredDraft(false);
       setPhoneError('');
     } catch (e) {}
   };
 
-  // 3. Tối ưu ảnh chuẩn in A4 (2500px, 300 DPI, JPEG quality 0.88)
-  const processFiles = async (files: FileList | File[]) => {
+  // 3. Quản lý danh sách món in (Items)
+  const handleAddItem = () => {
+    const newItem = createDefaultItem(items.length);
+    const updated = [...items, newItem];
+    setItems(updated);
+    saveDraft(zaloName, phone, deliveryMethod, shippingAddress, deadline, updated);
+  };
+
+  const handleRemoveItem = (itemId: string) => {
+    if (items.length <= 1) return;
+    const updated = items.filter(it => it.id !== itemId);
+    setItems(updated);
+    saveDraft(zaloName, phone, deliveryMethod, shippingAddress, deadline, updated);
+  };
+
+  const handleUpdateItemField = (itemId: string, field: 'product' | 'customRequest', value: string) => {
+    const updated = items.map(it => {
+      if (it.id === itemId) {
+        return { ...it, [field]: value };
+      }
+      return it;
+    });
+    setItems(updated);
+    saveDraft(zaloName, phone, deliveryMethod, shippingAddress, deadline, updated);
+  };
+
+  const handleQuantityChange = (itemId: string, delta: number) => {
+    const updated = items.map(it => {
+      if (it.id === itemId) {
+        const newQty = Math.max(1, Math.min(999, (it.quantity || 1) + delta));
+        return { ...it, quantity: newQty };
+      }
+      return it;
+    });
+    setItems(updated);
+    saveDraft(zaloName, phone, deliveryMethod, shippingAddress, deadline, updated);
+  };
+
+  const handleQuantityInput = (itemId: string, val: string) => {
+    const parsed = parseInt(val, 10);
+    const newQty = isNaN(parsed) ? 1 : Math.max(1, Math.min(999, parsed));
+    const updated = items.map(it => {
+      if (it.id === itemId) {
+        return { ...it, quantity: newQty };
+      }
+      return it;
+    });
+    setItems(updated);
+    saveDraft(zaloName, phone, deliveryMethod, shippingAddress, deadline, updated);
+  };
+
+  // 4. Xử lý tải và tối ưu ảnh cho từng món
+  const processFilesForItem = async (itemId: string, files: FileList | File[]) => {
+    const targetItem = items.find(it => it.id === itemId);
+    if (!targetItem) return;
+
     const validFiles: File[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.type.startsWith('image/')) {
-        const isDuplicate = images.some(img => img.name === file.name && img.size === file.size);
+        const isDuplicate = targetItem.images.some(img => img.name === file.name && img.size === file.size);
         if (!isDuplicate) {
           validFiles.push(file);
         }
@@ -139,7 +204,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
     if (validFiles.length === 0) return;
 
-    setIsOptimizingImages(true);
+    setOptimizingItemId(itemId);
     const newImages: UploadedImage[] = [];
 
     try {
@@ -179,35 +244,34 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
         }
       }
 
-      setImages(prev => [...prev, ...newImages]);
+      setItems(prev => prev.map(it => {
+        if (it.id === itemId) {
+          return {
+            ...it,
+            images: [...it.images, ...newImages]
+          };
+        }
+        return it;
+      }));
     } finally {
-      setIsOptimizingImages(false);
+      setOptimizingItemId(null);
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      processFiles(e.target.files);
-      e.target.value = ''; // Reset to allow re-selection
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processFiles(e.dataTransfer.files);
-    }
-  };
-
-  const handleRemoveImage = (id: string) => {
-    setImages(prev => {
-      const target = prev.find(img => img.id === id);
-      if (target?.previewUrl && target.previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(target.previewUrl);
+  const handleRemoveImageFromItem = (itemId: string, imageId: string) => {
+    setItems(prev => prev.map(it => {
+      if (it.id === itemId) {
+        const target = it.images.find(img => img.id === imageId);
+        if (target?.previewUrl && target.previewUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(target.previewUrl);
+        }
+        return {
+          ...it,
+          images: it.images.filter(img => img.id !== imageId)
+        };
       }
-      return prev.filter(img => img.id !== id);
-    });
+      return it;
+    }));
   };
 
   const formatSize = (bytes?: number) => {
@@ -217,55 +281,90 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  // Tổng số lượng món và tổng số ảnh
+  const totalItemsCount = items.reduce((acc, it) => acc + (it.quantity || 1), 0);
+  const totalImagesCount = items.reduce((acc, it) => acc + (it.images?.length || 0), 0);
+
+  // 5. Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate if home delivery
-    if (formData.deliveryMethod === 'home') {
+    // Validate Tên Zalo
+    if (!zaloName.trim()) {
+      alert('Vui lòng nhập Tên Nick Zalo để Shop đối chiếu tin nhắn!');
+      return;
+    }
+
+    // Validate Giao hàng tại nhà
+    if (deliveryMethod === 'home') {
       const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
-      if (!phoneRegex.test(formData.phone.trim())) {
+      if (!phoneRegex.test(phone.trim())) {
         setPhoneError('Vui lòng nhập đúng số điện thoại nhận hàng (10 chữ số)');
         return;
       }
-
-      if (!formData.shippingAddress.trim()) {
+      if (!shippingAddress.trim()) {
         alert('Vui lòng nhập Địa chỉ nhận hàng để Shop giao hàng tận nơi!');
         return;
       }
     } else {
-      // If shop delivery but phone entered, check validity
-      if (formData.phone.trim()) {
+      if (phone.trim()) {
         const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
-        if (!phoneRegex.test(formData.phone.trim())) {
+        if (!phoneRegex.test(phone.trim())) {
           setPhoneError('Vui lòng nhập đúng số điện thoại (10 chữ số)');
           return;
         }
       }
     }
 
-    // Validate images
-    if (images.length === 0) {
-      alert('Vui lòng tải lên ít nhất 1 hình ảnh cần in để Shop xử lý!');
-      return;
+    // Validate từng món in
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const itemNum = i + 1;
+
+      if (!item.product || item.product.trim() === '') {
+        alert(`Vui lòng chọn Loại sản phẩm cần in cho Món #${itemNum}!`);
+        return;
+      }
+
+      if (!item.images || item.images.length === 0) {
+        alert(`Vui lòng tải lên ít nhất 1 ảnh in cho Món #${itemNum} (${item.product})!`);
+        return;
+      }
     }
 
     setIsSubmitting(true);
 
-    const deliveryLabel = formData.deliveryMethod === 'home' ? 'Giao hàng tại nhà' : 'Nhận hàng tại Shop';
-    const addressInfo = formData.deliveryMethod === 'home' ? formData.shippingAddress.trim() : 'Nhận tại Shop';
-    const phoneInfo = formData.phone.trim() || (formData.deliveryMethod === 'home' ? '' : 'Nhận tại Shop');
+    const deliveryLabel = deliveryMethod === 'home' ? 'Giao hàng tại nhà' : 'Nhận hàng tại Shop';
+    const addressInfo = deliveryMethod === 'home' ? shippingAddress.trim() : 'Nhận tại Shop';
+    const phoneInfo = phone.trim() || (deliveryMethod === 'home' ? '' : 'Nhận tại Shop');
 
+    // Gom toàn bộ ảnh từ tất cả các món để tương thích
+    const allImages = items.flatMap(it => it.images);
+
+    // Chuẩn bị payload chuẩn gửi cho Backend và Google Apps Script
     const payload = {
-      zaloName: formData.zaloName.trim(),
+      zaloName: zaloName.trim(),
       phone: phoneInfo,
       deliveryMethod: deliveryLabel,
       shippingAddress: addressInfo,
-      product: formData.product,
-      customRequest: formData.customRequest.trim(),
-      printContent: formData.customRequest.trim(),
-      notes: (formData.deliveryMethod === 'home' ? `[Giao tận nơi: ${addressInfo} - SĐT: ${phoneInfo}] ` : `[Nhận tại Shop] `) + formData.customRequest.trim(),
-      deadline: formData.deadline,
-      images: images.map(img => ({
+      deadline: deadline.trim(),
+      // Danh sách chi tiết từng món
+      items: items.map((it, idx) => ({
+        id: it.id,
+        index: idx + 1,
+        product: it.product,
+        quantity: it.quantity || 1,
+        customRequest: it.customRequest.trim(),
+        images: it.images.map(img => ({
+          name: img.name,
+          type: img.type,
+          base64: img.base64
+        }))
+      })),
+      // Backward compatibility fields
+      product: items.map(it => `${it.quantity > 1 ? it.quantity + 'x ' : ''}${it.product}`).join(', '),
+      customRequest: items.map((it, idx) => `[Món ${idx + 1} - ${it.product} (SL: ${it.quantity})]: ${it.customRequest || 'In theo ảnh'}`).join(' | '),
+      images: allImages.map(img => ({
         name: img.name,
         type: img.type,
         base64: img.base64
@@ -273,26 +372,25 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     };
 
     const fullOrderFormData: OrderFormData = {
-      zaloName: formData.zaloName,
+      zaloName: zaloName.trim(),
       phone: phoneInfo,
-      deliveryMethod: formData.deliveryMethod,
-      shippingAddress: formData.shippingAddress,
-      product: formData.product,
-      customRequest: formData.customRequest,
-      printContent: formData.customRequest,
-      notes: payload.notes,
-      deadline: formData.deadline,
-      images
+      deliveryMethod,
+      shippingAddress,
+      deadline,
+      items,
+      product: payload.product,
+      customRequest: payload.customRequest,
+      images: allImages
     };
 
     try {
       const activeGasUrl = (scriptUrl || DEFAULT_GAS_URL).trim();
       const isRealUrl = activeGasUrl.startsWith('https://script.google.com/');
 
-      // 1. First attempt: Use the Express server backend proxy (/api/submit-order)
       let submittedSuccessfully = false;
       let responseData: any = null;
 
+      // 1. Thử gửi qua Express Backend proxy (/api/submit-order)
       try {
         const apiResponse = await fetch('/api/submit-order', {
           method: 'POST',
@@ -316,7 +414,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
         console.warn('Proxy submission error:', proxyErr);
       }
 
-      // 2. If proxy was not available and a real GAS URL is provided, attempt direct fetch
+      // 2. Thử gửi trực tiếp đến GAS nếu proxy lỗi
       if (!submittedSuccessfully && isRealUrl) {
         try {
           const directResponse = await fetch(activeGasUrl, {
@@ -340,39 +438,33 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
         }
       }
 
-      // 3. Cập nhật lại bản nháp lưu giữ thông tin khách, chỉ làm mới mục sản phẩm
-      try {
-        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
-          zaloName: formData.zaloName,
-          phone: formData.phone,
-          deliveryMethod: formData.deliveryMethod,
-          shippingAddress: formData.shippingAddress,
-          product: '',
-          customRequest: formData.customRequest,
-          deadline: formData.deadline,
-        }));
-      } catch (e) {}
+      // 3. Cập nhật lại bản nháp (giữ tên & thông tin nhận hàng, chỉ làm mới danh sách món)
+      saveDraft(zaloName, phone, deliveryMethod, shippingAddress, deadline, [createDefaultItem(0)]);
 
-      // 4. Complete successfully
-      const finalImgCount = images.length;
+      // 4. Hoàn tất và hiện bảng thông báo
       if (submittedSuccessfully && responseData) {
         const safeData = {
           ...responseData,
           savedImages: (typeof responseData.savedImages === 'number' && responseData.savedImages > 0)
             ? responseData.savedImages
-            : finalImgCount,
-          product: responseData.product || formData.product,
-          zaloName: responseData.zaloName || formData.zaloName,
-          phone: responseData.phone || formData.phone,
-          deliveryMethod: responseData.deliveryMethod || deliveryLabel,
-          shippingAddress: responseData.shippingAddress || addressInfo,
-          customRequest: responseData.customRequest || formData.customRequest,
+            : totalImagesCount,
+          product: payload.product,
+          zaloName: zaloName.trim(),
+          phone: phoneInfo,
+          deliveryMethod: deliveryLabel,
+          shippingAddress: addressInfo,
+          customRequest: payload.customRequest,
+          items: items.map(it => ({
+            product: it.product,
+            quantity: it.quantity || 1,
+            customRequest: it.customRequest,
+            imagesCount: it.images.length
+          }))
         };
         onSuccess(safeData, fullOrderFormData);
         resetForm();
       } else {
         await new Promise(r => setTimeout(r, 600));
-
         onSuccess({
           zaloName: payload.zaloName,
           phone: payload.phone,
@@ -380,34 +472,34 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           deliveryMethod: deliveryLabel,
           shippingAddress: addressInfo,
           customRequest: payload.customRequest,
-          savedImages: finalImgCount,
-          timestamp: new Date().toLocaleString('vi-VN')
+          savedImages: totalImagesCount,
+          timestamp: new Date().toLocaleString('vi-VN'),
+          items: items.map(it => ({
+            product: it.product,
+            quantity: it.quantity || 1,
+            customRequest: it.customRequest,
+            imagesCount: it.images.length
+          }))
         }, fullOrderFormData);
-
         resetForm();
       }
     } catch (err: any) {
       console.error('Submit error:', err);
-      try {
-        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
-          zaloName: formData.zaloName,
-          phone: formData.phone,
-          deliveryMethod: formData.deliveryMethod,
-          shippingAddress: formData.shippingAddress,
-          product: '',
-          customRequest: formData.customRequest,
-          deadline: formData.deadline,
-        }));
-      } catch (e) {}
       onSuccess({
-        zaloName: formData.zaloName,
-        phone: formData.phone,
-        product: formData.product,
+        zaloName: zaloName.trim(),
+        phone: phoneInfo,
+        product: payload.product,
         deliveryMethod: deliveryLabel,
         shippingAddress: addressInfo,
-        customRequest: formData.customRequest,
-        savedImages: images.length > 0 ? images.length : 1,
-        timestamp: new Date().toLocaleString('vi-VN')
+        customRequest: payload.customRequest,
+        savedImages: totalImagesCount,
+        timestamp: new Date().toLocaleString('vi-VN'),
+        items: items.map(it => ({
+          product: it.product,
+          quantity: it.quantity || 1,
+          customRequest: it.customRequest,
+          imagesCount: it.images.length
+        }))
       }, fullOrderFormData);
       resetForm();
     } finally {
@@ -416,21 +508,8 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
   };
 
   const resetForm = () => {
-    // Giữ lại tất cả thông tin đã điền trước đó, chỉ làm mới mục Sản phẩm và Ảnh
-    setFormData(prev => ({
-      zaloName: prev.zaloName,
-      phone: prev.phone,
-      deliveryMethod: prev.deliveryMethod,
-      shippingAddress: prev.shippingAddress,
-      product: '',
-      customRequest: prev.customRequest,
-      deadline: prev.deadline,
-    }));
+    setItems([createDefaultItem(0)]);
     setRestoredDraft(false);
-    setImages([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
   };
 
   return (
@@ -452,7 +531,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             Gửi Nội Dung Thiết Kế
           </h2>
           <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-md font-medium">
-            Bạn hãy điền đủ thông tin, đội ngũ thiết kế sẽ gửi bản demo qua Zalo để bạn duyệt trước khi in nhé.
+            Bạn có thể thêm nhiều món in (Ly sứ, Móc khóa, Tranh...) trong cùng 1 lần gửi. Shop sẽ gửi demo qua Zalo để bạn duyệt trước khi in nhé.
           </p>
         </div>
 
@@ -474,7 +553,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
         )}
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 sm:p-7 space-y-5">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-7 space-y-6">
 
           {/* 1. Tên Nick Zalo của bạn */}
           <div>
@@ -487,167 +566,284 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               id="zaloName" 
               name="zaloName" 
               required
-              value={formData.zaloName}
-              onChange={handleInputChange}
+              value={zaloName}
+              onChange={(e) => {
+                setZaloName(e.target.value);
+                saveDraft(e.target.value, phone, deliveryMethod, shippingAddress, deadline, items);
+              }}
               placeholder="VD: Nguyễn Văn A (Tên Zalo đang chat với Shop)"
               className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
             />
             <p className="text-[11px] text-slate-400 mt-1">Giúp Shop đối chiếu nhanh với đoạn chat Zalo</p>
           </div>
 
-          {/* 2. Loại sản phẩm cần in */}
-          <div>
-            <label htmlFor="product" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
-              <Tag className="w-4 h-4 text-pink-600" />
-              Loại sản phẩm cần in <span className="text-rose-500">*</span>
-            </label>
-            <select 
-              id="product" 
-              name="product" 
-              required
-              value={formData.product}
-              onChange={handleInputChange}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
-            >
-              <option value="" disabled>-- Chọn loại sản phẩm in ấn --</option>
-              {PRODUCT_CATEGORIES.map(cat => (
-                <option key={cat.id} value={cat.name}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* 3. Lời chúc / Ghi chú / Yêu cầu chỉnh sửa ảnh */}
-          <div>
-            <label htmlFor="customRequest" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
-              <MessageSquare className="w-4 h-4 text-pink-600" />
-              Lời chúc / Ghi chú / Yêu cầu chỉnh sửa ảnh
-            </label>
-            <textarea 
-              id="customRequest" 
-              name="customRequest" 
-              rows={3}
-              value={formData.customRequest}
-              onChange={handleInputChange}
-              placeholder="VD: 'Chúc mừng sinh nhật Mai Anh 20/10' | Cắt nền trắng, ghép ảnh thành hình trái tim, làm sáng da, gửi sớm giúp mình..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400 resize-none"
-            />
-            <p className="text-[11px] text-slate-400 mt-1">
-              Nhập nội dung chữ muốn in kèm (nếu có) và ghi chú các yêu cầu thiết kế cho Shop
-            </p>
-          </div>
-
-          {/* 4. Tải ảnh in ấn */}
-          <div className="pt-1">
-            <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800">
-                <ImageIcon className="w-4 h-4 text-pink-600" />
-                Tải ảnh in ấn <span className="text-rose-500">*</span>
-              </label>
-              <span className="text-xs font-semibold px-2 py-0.5 bg-pink-100/80 text-pink-700 rounded-md border border-pink-200">
-                {images.length} ảnh đã chọn
+          {/* 2. DANH SÁCH MÓN CẦN IN (MULTI-ITEMS SECTION) */}
+          <div className="space-y-4 pt-1">
+            <div className="flex items-center justify-between border-b border-pink-100 pb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-pink-100 text-[#d10074] flex items-center justify-center font-bold text-xs">
+                  <Layers className="w-3.5 h-3.5" />
+                </div>
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
+                  Danh Sách Món Cần In
+                </h3>
+              </div>
+              <span className="text-xs font-bold px-2.5 py-1 bg-pink-100 text-[#d10074] rounded-full border border-pink-200">
+                {items.length} món in • {totalImagesCount} ảnh
               </span>
             </div>
 
-            {/* Subtitle / HD Reminder banner */}
-            <div className="flex items-start gap-2.5 p-3 bg-amber-50/90 border border-amber-200/80 rounded-xl text-xs text-amber-900 mb-3 leading-relaxed">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold text-amber-950">Lưu ý:</span> Nên chọn <strong>ảnh gốc sắc nét (HD)</strong> từ điện thoại (Hạn chế dùng ảnh chụp màn hình).
-              </div>
+            {/* Render từng món in */}
+            <div className="space-y-4">
+              {items.map((item, index) => {
+                const itemNumber = index + 1;
+                const isOptimizingThisItem = optimizingItemId === item.id;
+                const isDraggingOverThisItem = dragOverItemId === item.id;
+
+                return (
+                  <div 
+                    key={item.id}
+                    className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-pink-50/40 via-white to-pink-50/20 border-2 border-pink-200/90 shadow-sm relative transition-all"
+                  >
+                    {/* Item Header */}
+                    <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-pink-100">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-[#d10074] text-white flex items-center justify-center text-xs font-extrabold shadow-xs">
+                          {itemNumber}
+                        </span>
+                        <span className="font-bold text-slate-800 text-sm">
+                          Món #{itemNumber}: {item.product || 'Chưa chọn sản phẩm'}
+                        </span>
+                      </div>
+
+                      {items.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveItem(item.id)}
+                          className="text-xs text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Xóa món này"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Xóa món</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-3.5">
+                      {/* Chọn loại sản phẩm & Số lượng */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        
+                        {/* Loại sản phẩm (2/3 width on desktop) */}
+                        <div className="sm:col-span-2">
+                          <label className="flex items-center gap-1 text-xs font-bold text-slate-700 mb-1">
+                            <Tag className="w-3.5 h-3.5 text-pink-600" />
+                            Loại sản phẩm <span className="text-rose-500">*</span>
+                          </label>
+                          <select 
+                            required
+                            value={item.product}
+                            onChange={(e) => handleUpdateItemField(item.id, 'product', e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl border border-pink-200 bg-white text-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all cursor-pointer font-medium"
+                          >
+                            <option value="" disabled>-- Chọn sản phẩm cần in --</option>
+                            {PRODUCT_CATEGORIES.map(cat => (
+                              <option key={cat.id} value={cat.name}>
+                                {cat.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Số lượng (1/3 width on desktop) */}
+                        <div>
+                          <label className="flex items-center gap-1 text-xs font-bold text-slate-700 mb-1">
+                            <ShoppingBag className="w-3.5 h-3.5 text-pink-600" />
+                            Số lượng
+                          </label>
+                          <div className="flex items-center border border-pink-200 rounded-xl bg-white overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() => handleQuantityChange(item.id, -1)}
+                              className="px-2.5 py-2 text-slate-600 hover:bg-pink-100 hover:text-pink-700 font-bold transition-colors cursor-pointer text-sm"
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              min={1}
+                              max={999}
+                              value={item.quantity}
+                              onChange={(e) => handleQuantityInput(item.id, e.target.value)}
+                              className="w-full text-center py-2 text-xs sm:text-sm font-bold text-slate-900 focus:outline-none bg-transparent"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleQuantityChange(item.id, 1)}
+                              className="px-2.5 py-2 text-slate-600 hover:bg-pink-100 hover:text-pink-700 font-bold transition-colors cursor-pointer text-sm"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* Lời chúc / Yêu cầu in riêng cho món này */}
+                      <div>
+                        <label className="flex items-center gap-1 text-xs font-bold text-slate-700 mb-1">
+                          <MessageSquare className="w-3.5 h-3.5 text-pink-600" />
+                          Nội dung chữ in / Yêu cầu riêng cho Món #{itemNumber}
+                        </label>
+                        <textarea 
+                          rows={2}
+                          value={item.customRequest}
+                          onChange={(e) => handleUpdateItemField(item.id, 'customRequest', e.target.value)}
+                          placeholder={`VD: In chữ 'Happy Birthday Lan' | Cắt nền ghép hình trái tim, làm sáng da...`}
+                          className="w-full px-3 py-2 rounded-xl border border-pink-200 bg-white text-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all placeholder:text-slate-400 resize-none"
+                        />
+                      </div>
+
+                      {/* Tải ảnh in ấn riêng cho món này */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="flex items-center gap-1 text-xs font-bold text-slate-700">
+                            <ImageIcon className="w-3.5 h-3.5 text-pink-600" />
+                            Ảnh in cho Món #{itemNumber} <span className="text-rose-500">*</span>
+                          </label>
+                          <span className="text-[11px] font-bold text-pink-700 bg-pink-100/80 px-2 py-0.5 rounded-md border border-pink-200">
+                            {item.images.length} ảnh đã chọn
+                          </span>
+                        </div>
+
+                        {/* Dropzone cho từng món */}
+                        <div
+                          onClick={() => !isOptimizingThisItem && fileInputRefs.current[item.id]?.click()}
+                          onDragOver={(e) => { e.preventDefault(); setDragOverItemId(item.id); }}
+                          onDragLeave={() => setDragOverItemId(null)}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            setDragOverItemId(null);
+                            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                              processFilesForItem(item.id, e.dataTransfer.files);
+                            }
+                          }}
+                          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center relative group ${
+                            isOptimizingThisItem 
+                              ? 'border-pink-300 bg-pink-50/50 cursor-wait'
+                              : isDraggingOverThisItem 
+                                ? 'border-pink-500 bg-pink-50/80 scale-[1.01]' 
+                                : 'border-pink-200 hover:border-pink-500 bg-white hover:bg-pink-50/40'
+                          }`}
+                        >
+                          <input 
+                            ref={(el) => (fileInputRefs.current[item.id] = el)}
+                            type="file" 
+                            multiple 
+                            accept="image/*" 
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files.length > 0) {
+                                processFilesForItem(item.id, e.target.files);
+                                e.target.value = '';
+                              }
+                            }}
+                            disabled={isOptimizingThisItem}
+                            className="hidden"
+                          />
+
+                          {isOptimizingThisItem ? (
+                            <div className="flex flex-col items-center justify-center py-0.5">
+                              <Loader2 className="w-6 h-6 text-pink-600 animate-spin mb-1" />
+                              <p className="text-xs font-bold text-slate-800">
+                                Đang tải và tối ưu ảnh...
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-slate-700">
+                              <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                                <Upload className="w-4 h-4" />
+                              </div>
+                              <div className="text-left">
+                                <p className="text-xs font-bold text-slate-800">
+                                  Bấm để chọn ảnh in cho món này
+                                </p>
+                                <p className="text-[10px] text-slate-400">
+                                  Chọn ảnh gốc sắc nét (HD) từ điện thoại
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Thumbnails preview của món */}
+                        {item.images.length > 0 && (
+                          <div className="mt-2.5 grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1">
+                            {item.images.map((img) => (
+                              <div key={img.id} className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-xs">
+                                <img 
+                                  src={img.previewUrl} 
+                                  alt={img.name} 
+                                  className="w-full h-full object-cover"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveImageFromItem(item.id, img.id);
+                                  }}
+                                  className="absolute top-1 right-1 w-5 h-5 bg-rose-600/90 text-white rounded-full flex items-center justify-center text-xs shadow hover:bg-rose-700 transition-colors cursor-pointer"
+                                  title="Xóa ảnh này"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                                <span className="absolute bottom-1 left-1 px-1 py-0.5 bg-black/65 text-white rounded text-[9px] backdrop-blur-xs font-mono">
+                                  {formatSize(img.compressedSize || img.size)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                      </div>
+
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Dropzone */}
-            <div
-              onClick={() => !isOptimizingImages && fileInputRef.current?.click()}
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center relative group ${
-                isOptimizingImages 
-                  ? 'border-pink-300 bg-pink-50/40 cursor-wait'
-                  : dragOver 
-                    ? 'border-pink-500 bg-pink-50/60 scale-[1.01]' 
-                    : 'border-pink-200 hover:border-pink-500 bg-pink-50/20 hover:bg-pink-50/50'
-              }`}
+            {/* Nút bấm thêm món in khác */}
+            <button
+              type="button"
+              onClick={handleAddItem}
+              className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-pink-400 hover:border-pink-600 bg-pink-50/50 hover:bg-pink-100/60 text-[#d10074] font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer group shadow-2xs"
             >
-              <input 
-                ref={fileInputRef}
-                type="file" 
-                multiple 
-                accept="image/*" 
-                onChange={handleFileChange}
-                disabled={isOptimizingImages}
-                className="hidden"
-              />
-
-              {isOptimizingImages ? (
-                <div className="flex flex-col items-center justify-center py-1">
-                  <Loader2 className="w-8 h-8 text-pink-600 animate-spin mb-2" />
-                  <p className="text-xs sm:text-sm font-bold text-slate-800">
-                    Đang tải và tối ưu ảnh...
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div className="w-12 h-12 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
-                    <Upload className="w-6 h-6" />
-                  </div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    Bấm để chọn ảnh
-                  </p>
-                </>
-              )}
-            </div>
-
-            {/* Preview Thumbnails Grid */}
-            {images.length > 0 && (
-              <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2.5 max-h-60 overflow-y-auto p-1">
-                {images.map((img) => (
-                  <div key={img.id} className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
-                    <img 
-                      src={img.previewUrl} 
-                      alt={img.name} 
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveImage(img.id);
-                      }}
-                      className="absolute top-1.5 right-1.5 w-6 h-6 bg-rose-600/90 text-white rounded-full flex items-center justify-center text-xs shadow hover:bg-rose-700 transition-colors cursor-pointer"
-                      title="Xóa ảnh này"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/65 text-white rounded text-[10px] backdrop-blur-xs font-mono">
-                      {formatSize(img.compressedSize || img.size)}
-                    </span>
-                  </div>
-                ))}
+              <div className="w-6 h-6 rounded-full bg-[#d10074] text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Plus className="w-4 h-4 stroke-[3]" />
               </div>
-            )}
+              <span>+ Thêm Món In Khác (Ly sứ, Móc khóa, Tranh, Gối...)</span>
+            </button>
           </div>
 
-          {/* 5. Hình thức nhận hàng (Giao hàng tại nhà -> có Số điện thoại & Địa chỉ) */}
-          <div>
+          {/* 3. Hình thức nhận hàng (Giao hàng tại nhà -> có Số điện thoại & Địa chỉ) */}
+          <div className="pt-2 border-t border-pink-100">
             <label className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-2">
               <Truck className="w-4 h-4 text-pink-600" />
-              Hình thức nhận hàng <span className="text-rose-500">*</span>
+              Hình thức nhận hàng toàn bộ đơn <span className="text-rose-500">*</span>
             </label>
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
-                onClick={() => handleDeliveryMethodChange('shop')}
+                onClick={() => {
+                  setDeliveryMethod('shop');
+                  saveDraft(zaloName, phone, 'shop', shippingAddress, deadline, items);
+                }}
                 className={`p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
-                  formData.deliveryMethod === 'shop'
+                  deliveryMethod === 'shop'
                     ? 'border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs'
                     : 'border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium'
                 }`}
               >
-                <div className={`p-1.5 rounded-xl shrink-0 mt-0.5 ${formData.deliveryMethod === 'shop' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
+                <div className={`p-1.5 rounded-xl shrink-0 mt-0.5 ${deliveryMethod === 'shop' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
                   <Store className="w-4 h-4" />
                 </div>
                 <div>
@@ -658,14 +854,17 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
               <button
                 type="button"
-                onClick={() => handleDeliveryMethodChange('home')}
+                onClick={() => {
+                  setDeliveryMethod('home');
+                  saveDraft(zaloName, phone, 'home', shippingAddress, deadline, items);
+                }}
                 className={`p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
-                  formData.deliveryMethod === 'home'
+                  deliveryMethod === 'home'
                     ? 'border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs'
                     : 'border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium'
                 }`}
               >
-                <div className={`p-1.5 rounded-xl shrink-0 mt-0.5 ${formData.deliveryMethod === 'home' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
+                <div className={`p-1.5 rounded-xl shrink-0 mt-0.5 ${deliveryMethod === 'home' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
                   <Truck className="w-4 h-4" />
                 </div>
                 <div>
@@ -676,7 +875,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             </div>
 
             {/* Nếu chọn Giao hàng tại nhà -> Nhập Số điện thoại nhận hàng + Địa chỉ giao hàng */}
-            {formData.deliveryMethod === 'home' && (
+            {deliveryMethod === 'home' && (
               <div className="mt-3.5 space-y-3 p-3.5 rounded-2xl bg-pink-50/40 border border-pink-200/70 animate-in fade-in slide-in-from-top-1">
                 {/* Số điện thoại nhận hàng */}
                 <div>
@@ -688,9 +887,9 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                     type="tel" 
                     id="phone" 
                     name="phone" 
-                    required={formData.deliveryMethod === 'home'}
-                    value={formData.phone}
-                    onChange={handleInputChange}
+                    required={deliveryMethod === 'home'}
+                    value={phone}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
                     placeholder="VD: 0912345678"
                     className={`w-full px-3.5 py-2.5 rounded-xl border text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 transition-all placeholder:text-slate-400 ${
                       phoneError 
@@ -713,13 +912,16 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                     <MapPin className="w-4 h-4 text-pink-600" />
                     Địa chỉ giao hàng <span className="text-rose-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    id="shippingAddress"
-                    name="shippingAddress"
-                    required={formData.deliveryMethod === 'home'}
-                    value={formData.shippingAddress}
-                    onChange={handleInputChange}
+                  <input 
+                    type="text" 
+                    id="shippingAddress" 
+                    name="shippingAddress" 
+                    required={deliveryMethod === 'home'}
+                    value={shippingAddress}
+                    onChange={(e) => {
+                      setShippingAddress(e.target.value);
+                      saveDraft(zaloName, phone, deliveryMethod, e.target.value, deadline, items);
+                    }}
                     placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."
                     className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
                   />
@@ -729,7 +931,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             )}
           </div>
 
-          {/* 6. Hạn chót bạn cần nhận hàng */}
+          {/* 4. Hạn chót bạn cần nhận hàng */}
           <div>
             <label htmlFor="deadline" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
               <Calendar className="w-4 h-4 text-pink-600" />
@@ -740,8 +942,11 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               id="deadline" 
               name="deadline" 
               min={todayMinDate}
-              value={formData.deadline}
-              onChange={handleInputChange}
+              value={deadline}
+              onChange={(e) => {
+                setDeadline(e.target.value);
+                saveDraft(zaloName, phone, deliveryMethod, shippingAddress, e.target.value, items);
+              }}
               className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
             />
             <p className="text-[11px] text-slate-400 mt-1">Shop sẽ chủ động sắp xếp lịch in gia công kịp ngày cho bạn</p>
@@ -751,18 +956,18 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           <div className="pt-2">
             <button 
               type="submit" 
-              disabled={isSubmitting || isOptimizingImages}
+              disabled={isSubmitting || optimizingItemId !== null}
               className="w-full py-3.5 px-6 rounded-2xl bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold text-sm sm:text-base shadow-sm hover:shadow-md hover:shadow-pink-500/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                  <>
                   <Loader2 className="w-5 h-5 animate-spin text-[#d10074]" />
-                  <span>Đang gửi thông tin...</span>
+                  <span>Đang gửi {items.length} món in ({totalImagesCount} ảnh)...</span>
                 </>
               ) : (
                 <>
                   <Send className="w-5 h-5 text-[#d10074]" />
-                  <span>Gửi Thông Tin Cho Shop</span>
+                  <span>Gửi Đơn Hàng ({items.length} món in • {totalImagesCount} ảnh)</span>
                 </>
               )}
             </button>
