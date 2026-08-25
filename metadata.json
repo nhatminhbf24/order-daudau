@@ -1,6 +1,6 @@
 {
   "name": "Dâu Dâu Shop Quà Tặng In Hình",
-  "description": "Hệ thống tiếp nhận thông tin đơn hàng và ảnh in quà tặng cá nhân hóa cho Dâu Dâu Shop kết nối Google Drive & Sheets",
+  "description": "Cổng tiếp nhận thông tin đơn hàng & ảnh in quà tặng theo yêu cầu.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

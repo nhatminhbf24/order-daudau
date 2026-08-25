@@ -553,7 +553,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             Gửi Nội Dung Thiết Kế
           </h2>
           <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-md font-medium">
-            Bạn có thể thêm nhiều món in (Ly sứ, Móc khóa, Tranh...) trong cùng 1 lần gửi. Shop sẽ gửi demo qua Zalo để bạn duyệt trước khi in nhé.
+            Bạn hãy điền đủ thông tin, đội ngũ thiết kế sẽ gửi bản demo qua Zalo cho bạn duyệt trước khi in nhé
           </p>
         </div>
 
@@ -837,12 +837,12 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             <button
               type="button"
               onClick={handleAddItem}
-              className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-pink-400 hover:border-pink-600 bg-pink-50/50 hover:bg-pink-100/60 text-[#d10074] font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer group shadow-2xs"
+              className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-emerald-400 hover:border-emerald-500 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer group shadow-2xs"
             >
-              <div className="w-6 h-6 rounded-full bg-[#d10074] text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
                 <Plus className="w-4 h-4 stroke-[3]" />
               </div>
-              <span>+ Thêm Món In Khác</span>
+              <span>Thêm Sản Phẩm Khác</span>
             </button>
           </div>
 
