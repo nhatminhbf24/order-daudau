@@ -1,4 +1,4 @@
-export const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzrMMuUCq4NUHiUFYFdhmHRZD0fFzm8xyx06edYrPoyLFuBFPpwwLY176Su7sRnQkY/exec';
+export const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxNe0-m-90KyGhFIowCgIVYyuqQUJo7k2xVHNkaIl5akYip6Bz-1UpVAyRfdym3c4oH/exec';
 
 export const PRODUCT_CATEGORIES = [
   { id: 'cup', name: '☕ Ly sứ', icon: 'Coffee', desc: 'Ly sứ trắng, ly lòng màu, ly đổi màu' },

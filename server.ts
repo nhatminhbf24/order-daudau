@@ -20,7 +20,7 @@ interface OrderItem {
 }
 
 // Default Google Apps Script URL for Dâu Dâu Shop
-const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzrMMuUCq4NUHiUFYFdhmHRZD0fFzm8xyx06edYrPoyLFuBFPpwwLY176Su7sRnQkY/exec';
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxNe0-m-90KyGhFIowCgIVYyuqQUJo7k2xVHNkaIl5akYip6Bz-1UpVAyRfdym3c4oH/exec';
 
 // In-memory order storage for preview & local logging
 const inMemoryOrders: OrderItem[] = [];
