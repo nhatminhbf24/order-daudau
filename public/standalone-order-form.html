@@ -294,17 +294,10 @@
         Thông tin của bạn luôn được bảo mật an toàn
       </p>
       <div class="flex items-center justify-center gap-1.5 text-slate-400 font-medium">
-        <button
-          type="button"
-          onclick="promptGasConfig()"
-          class="inline-flex items-center justify-center p-1 rounded-md text-pink-500 hover:text-pink-600 hover:bg-pink-50 transition-colors"
-          title="Độc đáo - Chất Lượng - Tận Tâm"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
-          </svg>
-        </button>
-        <span>Độc đáo - Chất Lượng - Tận Tâm</span>
+        <svg class="w-3.5 h-3.5 text-pink-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span>Dâu Dâu Shop • Độc đáo - Chất Lượng - Tận Tâm</span>
       </div>
     </div>
   </main>
@@ -599,10 +592,6 @@
         `;
         btnText.textContent = 'Gửi Thông Tin Cho Shop';
       }
-    }
-
-    function promptGasConfig() {
-      alert("Đường dẫn Google Apps Script Web App hiện tại của Shop:\n" + SCRIPT_URL);
     }
 
     function showSuccessModal(data, isDemo = false) {

@@ -12,15 +12,13 @@ import { compressImageForA4Print } from '../utils/imageOptimizer';
 interface CustomerOrderFormProps {
   scriptUrl: string;
   onSuccess: (data: SubmissionResponse['data'], rawForm: OrderFormData) => void;
-  onOpenSettings: () => void;
 }
 
 const DRAFT_STORAGE_KEY = 'dau_dau_order_form_draft';
 
 export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({ 
   scriptUrl, 
-  onSuccess,
-  onOpenSettings
+  onSuccess
 }) => {
   const [formData, setFormData] = useState({
     zaloName: '',
@@ -779,17 +777,10 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
           Thông tin của bạn luôn được bảo mật an toàn
         </p>
-        <div className="flex items-center justify-center gap-1 text-slate-400 font-medium">
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            className="inline-flex items-center justify-center p-1 rounded-md text-slate-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
-            title="Độc đáo - Chất Lượng - Tận Tâm"
-          >
-            <Check className="w-3.5 h-3.5 text-pink-500" strokeWidth={2.5} />
-          </button>
-          <span>Độc đáo - Chất Lượng - Tận Tâm</span>
-        </div>
+        <p className="flex items-center justify-center gap-1.5 text-slate-400 font-medium">
+          <CheckCircle2 className="w-3.5 h-3.5 text-pink-500 shrink-0" />
+          <span>Dâu Dâu Shop • Độc đáo - Chất Lượng - Tận Tâm</span>
+        </p>
       </div>
 
     </div>
