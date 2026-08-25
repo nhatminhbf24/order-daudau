@@ -546,7 +546,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           <div className="absolute -right-8 -top-8 w-40 h-40 bg-pink-200/40 rounded-full blur-2xl pointer-events-none"></div>
           
           <div className="inline-flex items-center gap-2 bg-white/90 shadow-xs px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-2.5 border border-pink-200 text-[#d10074]">
-            <img src="/favicon.svg" alt="Logo Quà Tặng Biên Hòa" className="w-4 h-4 object-contain" />
             DÂU DÂU SHOP QUÀ TẶNG IN HÌNH
           </div>
           
@@ -600,7 +599,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             <p className="text-[11px] text-slate-400 mt-1">Giúp Shop đối chiếu nhanh với đoạn chat Zalo</p>
           </div>
 
-          {/* 2. DANH SÁCH MÓN CẦN IN (MULTI-ITEMS SECTION) */}
+          {/* 2. DANH SÁCH (MULTI-ITEMS SECTION) */}
           <div className="space-y-4 pt-1">
             <div className="flex items-center justify-between border-b border-pink-100 pb-2">
               <div className="flex items-center gap-2">
@@ -608,7 +607,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                   <Layers className="w-3.5 h-3.5" />
                 </div>
                 <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
-                  Danh Sách Món Cần In
+                  Danh Sách
                 </h3>
               </div>
               <span className="text-xs font-bold px-2.5 py-1 bg-pink-100 text-[#d10074] rounded-full border border-pink-200">
@@ -715,7 +714,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                       <div>
                         <label className="flex items-center gap-1 text-xs font-bold text-slate-700 mb-1">
                           <MessageSquare className="w-3.5 h-3.5 text-pink-600" />
-                          Nội dung chữ in / Yêu cầu riêng cho Món #{itemNumber}
+                          Nội dung chữ / Yêu cầu riêng cho Món #{itemNumber}
                         </label>
                         <textarea 
                           rows={2}
@@ -790,7 +789,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                                   Bấm để chọn ảnh in cho món này
                                 </p>
                                 <p className="text-[10px] text-slate-400">
-                                  Chọn ảnh gốc sắc nét (HD) từ điện thoại
+                                  Chọn ảnh gốc sắc nét từ điện thoại
                                 </p>
                               </div>
                             </div>
@@ -843,7 +842,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               <div className="w-6 h-6 rounded-full bg-[#d10074] text-white flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Plus className="w-4 h-4 stroke-[3]" />
               </div>
-              <span>+ Thêm Món In Khác (Ly sứ, Móc khóa, Tranh, Gối...)</span>
+              <span>+ Thêm Món In Khác</span>
             </button>
           </div>
 
