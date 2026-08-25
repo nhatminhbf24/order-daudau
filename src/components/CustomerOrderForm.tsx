@@ -1011,6 +1011,42 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
         </p>
       </div>
 
+      {/* Modal Đang Gửi Đơn Hàng / Xử Lý Ảnh Chất Lượng Cao */}
+      {isSubmitting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-pink-100 animate-in zoom-in-95 duration-200 relative overflow-hidden">
+            {/* Thanh hiệu ứng gradient chuyển động */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-pink-300 via-[#d10074] to-pink-300 animate-pulse"></div>
+
+            {/* Vòng quay loading */}
+            <div className="relative w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full border-4 border-pink-100 border-t-[#d10074] animate-spin"></div>
+              <div className="w-10 h-10 rounded-full bg-pink-50 text-[#d10074] flex items-center justify-center font-bold shadow-inner">
+                <Loader2 className="w-5 h-5 animate-spin" />
+              </div>
+            </div>
+
+            {/* Tiêu đề & Nội dung theo yêu cầu */}
+            <h4 className="text-lg font-extrabold text-slate-800 mb-2">
+              Đơn hàng đang được gửi đi...
+            </h4>
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4 font-medium">
+              Đang xử lý ảnh chất lượng cao...để giữ trọn độ nét ảnh của bạn khi đến xưởng. Xin vui lòng đợi trong giây lát nhé!
+            </p>
+
+            {/* Thanh tiến trình mô phỏng trạng thái hoạt động */}
+            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden mb-3.5">
+              <div className="h-full bg-gradient-to-r from-pink-500 to-[#d10074] rounded-full animate-[progress_2.5s_ease-in-out_infinite] w-3/4"></div>
+            </div>
+
+            {/* Dòng cảnh báo nhỏ mờ bên dưới */}
+            <p className="text-[11px] text-slate-400 font-normal italic">
+              (Vui lòng không tải lại trang hoặc bấm quay lại)
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Modal Thông Báo Giới Hạn */}
       {limitAlertMessage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
