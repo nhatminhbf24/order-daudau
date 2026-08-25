@@ -76,10 +76,10 @@
           <svg class="w-4 h-4 text-pink-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
           </svg>
-          <span>Đã tự động khôi phục thông tin đã điền.</span>
+          <span>Đã tự động khôi phục dữ liệu khi bạn chuyển đổi ứng dụng.</span>
         </div>
         <button type="button" onclick="clearDraft()" class="text-[11px] text-pink-700 hover:text-pink-950 font-semibold underline shrink-0 cursor-pointer">
-          Xóa điền lại
+          Nhập lại từ đầu
         </button>
       </div>
 
@@ -102,7 +102,7 @@
           <p class="text-xs text-slate-400 mt-1">Giúp Shop đối chiếu nhanh với đoạn chat Zalo</p>
         </div>
 
-        <!-- 2. DANH SÁCH -->
+        <!-- 2. DANH SÁCH SẢN PHẨM -->
         <div class="space-y-3 pt-1 border-t border-pink-100">
           <div class="flex items-center justify-between pt-2">
             <div class="flex items-center gap-2">
@@ -110,7 +110,7 @@
                 🏷️
               </span>
               <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
-                Danh Sách
+                Danh Sách Sản Phẩm
               </h3>
             </div>
             <span id="itemsSummaryBadge" class="text-xs font-bold px-2.5 py-1 bg-pink-100 text-[#d10074] rounded-full border border-pink-200">
@@ -144,14 +144,13 @@
               type="button"
               id="btnShopDelivery"
               onclick="setDeliveryMethod('shop')"
-              class="p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs cursor-pointer"
+              class="p-3 rounded-2xl border text-left transition-all flex items-center gap-2.5 border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs cursor-pointer"
             >
-              <div id="iconShop" class="p-1.5 rounded-xl shrink-0 mt-0.5 bg-pink-500 text-white shadow-xs">
+              <div id="iconShop" class="p-1.5 rounded-xl shrink-0 bg-pink-500 text-white shadow-xs">
                 🏪
               </div>
               <div>
                 <div class="text-xs sm:text-sm font-bold">Nhận tại Shop</div>
-                <div class="text-[11px] text-slate-400 font-normal mt-0.5">Đến trực tiếp lấy</div>
               </div>
             </button>
 
@@ -159,14 +158,13 @@
               type="button"
               id="btnHomeDelivery"
               onclick="setDeliveryMethod('home')"
-              class="p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium cursor-pointer"
+              class="p-3 rounded-2xl border text-left transition-all flex items-center gap-2.5 border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium cursor-pointer"
             >
-              <div id="iconHome" class="p-1.5 rounded-xl shrink-0 mt-0.5 bg-slate-200/80 text-slate-600">
+              <div id="iconHome" class="p-1.5 rounded-xl shrink-0 bg-slate-200/80 text-slate-600">
                 🚚
               </div>
               <div>
                 <div class="text-xs sm:text-sm font-bold">Giao hàng tại nhà</div>
-                <div class="text-[11px] text-slate-400 font-normal mt-0.5">Ship tận nơi toàn quốc</div>
               </div>
             </button>
           </div>
@@ -185,7 +183,6 @@
                 class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all placeholder:text-slate-400"
                 oninput="saveDraft()"
               >
-              <p class="text-[11px] text-slate-400 mt-1">Shipper sẽ gọi số này khi giao hàng</p>
             </div>
 
             <div>
@@ -200,7 +197,6 @@
                 class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all placeholder:text-slate-400"
                 oninput="saveDraft()"
               >
-              <p class="text-[11px] text-slate-400 mt-1">Shipper sẽ giao quà đến tận tay bạn theo địa chỉ này</p>
             </div>
           </div>
         </div>
@@ -217,7 +213,7 @@
             class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
             oninput="saveDraft()"
           >
-          <p class="text-xs text-slate-400 mt-1">Shop sẽ chủ động sắp xếp lịch in gia công kịp ngày cho bạn</p>
+          <p class="text-xs text-slate-400 mt-1">Shop sẽ chủ động sắp xếp lịch in kịp ngày cho bạn.</p>
         </div>
 
         <!-- Nút Gửi Thông Tin -->
@@ -230,7 +226,7 @@
             <svg id="btnSubmitIcon" class="w-5 h-5 text-[#d10074]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
             </svg>
-            <span id="btnSubmitText">Gửi Đơn Hàng (1 món in • 0 ảnh)</span>
+            <span id="btnSubmitText">Gửi Yêu Cầu Thiết Kế (1 món in • 0 ảnh)</span>
           </button>
         </div>
 
@@ -570,7 +566,7 @@
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Nội dung chữ / Yêu cầu riêng cho Món #${itemNumber}</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Thêm chữ / Yêu cầu riêng cho Món #${itemNumber}</label>
               <textarea 
                 rows="2"
                 oninput="updateItemCustomRequest('${item.id}', this.value)"
@@ -603,8 +599,8 @@
                   📷
                 </div>
                 <div class="text-left">
-                  <p class="text-xs font-bold text-slate-800">Bấm để chọn ảnh in cho món này</p>
-                  <p class="text-[10px] text-slate-400">Chọn ảnh gốc sắc nét từ điện thoại</p>
+                  <p class="text-xs font-bold text-slate-800">Bấm để tải ảnh lên</p>
+                  <p class="text-[10px] text-slate-400">Ưu tiên ảnh gốc sắc nét</p>
                 </div>
               </div>
 
@@ -687,7 +683,7 @@
       const totalImages = items.reduce((acc, it) => acc + (it.images?.length || 0), 0);
 
       document.getElementById('itemsSummaryBadge').textContent = `${items.length} món in • ${totalImages} ảnh`;
-      document.getElementById('btnSubmitText').textContent = `Gửi Đơn Hàng (${items.length} món in • ${totalImages} ảnh)`;
+      document.getElementById('btnSubmitText').textContent = `Gửi Yêu Cầu Thiết Kế (${items.length} món in • ${totalImages} ảnh)`;
     }
 
     function saveDraft() {

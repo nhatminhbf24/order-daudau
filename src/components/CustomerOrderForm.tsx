@@ -562,14 +562,14 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           <div className="mx-5 sm:mx-7 mt-4 p-3 bg-pink-50 border border-pink-200 rounded-xl flex items-center justify-between gap-2 text-xs text-pink-900 animate-in fade-in">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-pink-600 shrink-0" />
-              <span>Đã tự động khôi phục thông tin khi bạn chuyển đổi ứng dụng.</span>
+              <span>Đã tự động khôi phục dữ liệu khi bạn chuyển đổi ứng dụng.</span>
             </div>
             <button
               type="button"
               onClick={handleClearDraft}
               className="text-[11px] text-pink-700 hover:text-pink-950 font-semibold underline shrink-0 cursor-pointer"
             >
-              Xóa điền lại
+              Nhập lại từ đầu
             </button>
           </div>
         )}
@@ -599,7 +599,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             <p className="text-[11px] text-slate-400 mt-1">Giúp Shop đối chiếu nhanh với đoạn chat Zalo</p>
           </div>
 
-          {/* 2. DANH SÁCH (MULTI-ITEMS SECTION) */}
+          {/* 2. DANH SÁCH SẢN PHẨM (MULTI-ITEMS SECTION) */}
           <div className="space-y-4 pt-1">
             <div className="flex items-center justify-between border-b border-pink-100 pb-2">
               <div className="flex items-center gap-2">
@@ -607,7 +607,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                   <Layers className="w-3.5 h-3.5" />
                 </div>
                 <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
-                  Danh Sách
+                  Danh Sách Sản Phẩm
                 </h3>
               </div>
               <span className="text-xs font-bold px-2.5 py-1 bg-pink-100 text-[#d10074] rounded-full border border-pink-200">
@@ -714,7 +714,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                       <div>
                         <label className="flex items-center gap-1 text-xs font-bold text-slate-700 mb-1">
                           <MessageSquare className="w-3.5 h-3.5 text-pink-600" />
-                          Nội dung chữ / Yêu cầu riêng cho Món #{itemNumber}
+                          Thêm chữ / Yêu cầu riêng cho Món #{itemNumber}
                         </label>
                         <textarea 
                           rows={2}
@@ -786,10 +786,10 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                               </div>
                               <div className="text-left">
                                 <p className="text-xs font-bold text-slate-800">
-                                  Bấm để chọn ảnh in cho món này
+                                  Bấm để tải ảnh lên
                                 </p>
                                 <p className="text-[10px] text-slate-400">
-                                  Chọn ảnh gốc sắc nét từ điện thoại
+                                  Ưu tiên ảnh gốc sắc nét
                                 </p>
                               </div>
                             </div>
@@ -859,18 +859,17 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                   setDeliveryMethod('shop');
                   saveDraft(zaloName, phone, 'shop', shippingAddress, deadline, items);
                 }}
-                className={`p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
+                className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-2.5 cursor-pointer ${
                   deliveryMethod === 'shop'
                     ? 'border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs'
                     : 'border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium'
                 }`}
               >
-                <div className={`p-1.5 rounded-xl shrink-0 mt-0.5 ${deliveryMethod === 'shop' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
+                <div className={`p-1.5 rounded-xl shrink-0 ${deliveryMethod === 'shop' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
                   <Store className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs sm:text-sm">Nhận tại Shop</div>
-                  <div className="text-[11px] text-slate-400 font-normal mt-0.5">Đến trực tiếp lấy</div>
+                  <div className="text-xs sm:text-sm font-bold">Nhận tại Shop</div>
                 </div>
               </button>
 
@@ -880,18 +879,17 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                   setDeliveryMethod('home');
                   saveDraft(zaloName, phone, 'home', shippingAddress, deadline, items);
                 }}
-                className={`p-3 rounded-2xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
+                className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-2.5 cursor-pointer ${
                   deliveryMethod === 'home'
                     ? 'border-pink-500 bg-pink-50/80 ring-2 ring-pink-500/20 text-pink-950 font-semibold shadow-xs'
                     : 'border-pink-100 bg-white hover:bg-pink-50/30 text-slate-700 font-medium'
                 }`}
               >
-                <div className={`p-1.5 rounded-xl shrink-0 mt-0.5 ${deliveryMethod === 'home' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
+                <div className={`p-1.5 rounded-xl shrink-0 ${deliveryMethod === 'home' ? 'bg-pink-500 text-white shadow-xs' : 'bg-slate-200/80 text-slate-600'}`}>
                   <Truck className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs sm:text-sm">Giao hàng tại nhà</div>
-                  <div className="text-[11px] text-slate-400 font-normal mt-0.5">Ship tận nơi toàn quốc</div>
+                  <div className="text-xs sm:text-sm font-bold">Giao hàng tại nhà</div>
                 </div>
               </button>
             </div>
@@ -925,7 +923,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                       {phoneError}
                     </p>
                   )}
-                  <p className="text-[11px] text-slate-400 mt-1">Shipper sẽ gọi số này khi giao hàng</p>
                 </div>
 
                 {/* Địa chỉ giao hàng */}
@@ -947,7 +944,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                     placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."
                     className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
                   />
-                  <p className="text-[11px] text-slate-400 mt-1">Shipper sẽ giao quà đến tận tay bạn theo địa chỉ này</p>
                 </div>
               </div>
             )}
@@ -971,7 +967,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               }}
               className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
             />
-            <p className="text-[11px] text-slate-400 mt-1">Shop sẽ chủ động sắp xếp lịch in gia công kịp ngày cho bạn</p>
+            <p className="text-[11px] text-slate-400 mt-1">Shop sẽ chủ động sắp xếp lịch in kịp ngày cho bạn.</p>
           </div>
 
           {/* Submit Button */}
@@ -989,7 +985,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               ) : (
                 <>
                   <Send className="w-5 h-5 text-[#d10074]" />
-                  <span>Gửi Đơn Hàng ({items.length} món in • {totalImagesCount} ảnh)</span>
+                  <span>Gửi Yêu Cầu Thiết Kế ({items.length} món in • {totalImagesCount} ảnh)</span>
                 </>
               )}
             </button>
