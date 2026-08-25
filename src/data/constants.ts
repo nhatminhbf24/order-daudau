@@ -1,4 +1,4 @@
-export const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwszC_NVU_4XAU7XiwtAlSdLBRZWpDHHS-iURDsACZUyD-qhsQlqwPwk6Goa8BgKOP3/exec';
+export const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzrMMuUCq4NUHiUFYFdhmHRZD0fFzm8xyx06edYrPoyLFuBFPpwwLY176Su7sRnQkY/exec';
 
 export const PRODUCT_CATEGORIES = [
   { id: 'cup', name: '☕ Ly sứ', icon: 'Coffee', desc: 'Ly sứ trắng, ly lòng màu, ly đổi màu' },
@@ -17,22 +17,21 @@ export const PRODUCT_CATEGORIES = [
 
 export const GAS_CODE_TEMPLATE = `/**
  * =========================================================================
- * GOOGLE APPS SCRIPT - BACKEND XỬ LÝ ĐƠN HÀNG XƯỞNG IN QUÀ TẶNG CÁ NHÂN HÓA
+ * GOOGLE APPS SCRIPT - BACKEND XỬ LÝ ĐƠN HÀNG XƯỞNG IN QUÀ TẶNG DÂU DÂU SHOP
  * Tự động tạo thư mục Drive lưu ảnh gốc + Ghi dữ liệu vào Google Sheets
  * =========================================================================
  */
 
 // ======================= CẤU HÌNH HỆ THỐNG =======================
-// 1. Dán ID Thư mục Google Drive cha (Nơi chứa các thư mục đơn hàng của khách)
-// Cách lấy ID: Mở thư mục trên Drive, copy đoạn mã cuối URL: https://drive.google.com/drive/folders/[ID_NÀY]
-const PARENT_FOLDER_ID = "YOUR_GOOGLE_DRIVE_FOLDER_ID_HERE";
+// 1. ID Thư mục Google Drive cha (Thư mục "Thietke_DauDau")
+const PARENT_FOLDER_ID = "1qwnk2OKuxzL8obxFgnlFv6Ef5chkAr-o";
 
-// 2. Tên Sheet dùng để lưu đơn hàng (Mặc định là 'Đơn Hàng')
+// 2. Tên Sheet dùng để lưu đơn hàng
 const SHEET_NAME = "Đơn Hàng";
 // =================================================================
 
 /**
- * Xử lý yêu cầu POST gửi từ Webapp
+ * Xử lý yêu cầu POST gửi từ Webapp đặt in hình
  */
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -56,24 +55,24 @@ function doPost(e) {
 
     // 1. Đọc và phân tích JSON từ Webapp
     const data = JSON.parse(e.postData.contents);
-    const zaloName = (data.zaloName || "Khách Vô Danh").trim();
+    const zaloName = (data.zaloName || "Khách Zalo").trim();
     const phone = (data.phone || "").trim();
-    const deliveryMethod = (data.deliveryMethod || "Nhận hàng tại Shop").trim();
-    const shippingAddress = (data.shippingAddress || "Nhận tại Shop").trim();
-    const product = (data.product || "Khác").trim();
-    const customRequest = (data.customRequest || data.printContent || data.notes || "").trim();
-    const printContent = customRequest;
+    const product = (data.product || "Sản phẩm quà tặng").trim();
+    const customRequest = (data.customRequest || data.notes || data.printContent || "").trim();
+    const deliveryMethod = (data.deliveryMethod || "shop").trim().toLowerCase();
+    const shippingAddress = (data.shippingAddress || "").trim();
     const deadline = (data.deadline || "Không yêu cầu").trim();
-    const notes = (deliveryMethod === "Giao hàng tại nhà" ? "[Giao tại nhà: " + shippingAddress + "] " : "[Nhận tại Shop] ") + customRequest;
     const images = Array.isArray(data.images) ? data.images : [];
 
-    // Kiểm tra dữ liệu bắt buộc
-    if (!zaloName || !phone) {
-      return createJsonResponse({
-        status: "error",
-        message: "Vui lòng cung cấp Tên Zalo và Số điện thoại hợp lệ!"
-      });
-    }
+    // Phân loại hình thức nhận hàng và gán nhãn thư mục
+    const isHomeDelivery = (deliveryMethod === "home" || deliveryMethod === "giao hàng tại nhà" || deliveryMethod === "giaohang");
+    const deliveryTag = isHomeDelivery ? "[Giao hàng]" : "[Nhận tại shop]";
+    const deliveryMethodText = isHomeDelivery 
+      ? ("Giao hàng tận nơi (" + (shippingAddress || "Chưa có địa chỉ") + ")") 
+      : "Nhận tại Shop";
+
+    // Làm sạch tên sản phẩm (loại bỏ icon đầu nếu có để đặt tên thư mục gọn gàng)
+    const cleanProduct = product.replace(/^[^\w\s\u00C0-\u1EF9]+/u, "").trim() || product;
 
     // 2. Tạo định dạng thời gian chuẩn: YYYY-MM-DD_HHmm và DD/MM/YYYY HH:mm:ss
     const now = new Date();
@@ -81,28 +80,33 @@ function doPost(e) {
     const folderDatePrefix = Utilities.formatDate(now, timeZone, "yyyy-MM-dd_HHmm");
     const displayTimestamp = Utilities.formatDate(now, timeZone, "dd/MM/yyyy HH:mm:ss");
 
-    // 3. Tạo thư mục con trên Google Drive
+    // 3. Mở thư mục cha Google Drive
     let parentFolder;
     try {
       parentFolder = DriveApp.getFolderById(PARENT_FOLDER_ID);
     } catch (fErr) {
-      // Nếu chưa cấu hình ID hoặc không tìm thấy, tạo tại Root Drive
+      // Nếu ID không đúng hoặc chưa phân quyền, tạo tại Root Drive
       parentFolder = DriveApp.getRootFolder();
     }
 
-    // Quy tắc đặt tên thư mục: [YYYY-MM-DD_HHmm] TênZalo - SĐT
-    const folderName = \`[\${folderDatePrefix}] \${zaloName} - \${phone}\`;
+    // 4. Quy tắc đặt tên thư mục con: [YYYY-MM-DD_HHmm] Tên Zalo [- SĐT] - [Sản phẩm] - [Nhận tại shop / Giao hàng]
+    let folderName = "[" + folderDatePrefix + "] " + zaloName;
+    if (phone) {
+      folderName += " - " + phone;
+    }
+    folderName += " - [" + cleanProduct + "] - " + deliveryTag;
+
     const orderFolder = parentFolder.createFolder(folderName);
     const folderUrl = orderFolder.getUrl();
 
-    // 4. Giải mã mảng ảnh Base64 và lưu file gốc vào thư mục vừa tạo
+    // 5. Giải mã mảng ảnh Base64 và lưu file ảnh gốc chất lượng cao vào thư mục
     let savedImagesCount = 0;
     if (images.length > 0) {
       images.forEach((imgObj, index) => {
         try {
           let base64Data = "";
           let contentType = "image/jpeg";
-          let fileName = \`Anh_in_\${index + 1}.jpg\`;
+          let fileName = "Anh_in_" + (index + 1) + ".jpg";
 
           if (typeof imgObj === "string") {
             if (imgObj.indexOf(";base64,") !== -1) {
@@ -113,7 +117,7 @@ function doPost(e) {
               base64Data = imgObj;
             }
           } else if (typeof imgObj === "object") {
-            if (imgObj.name) fileName = \`\${index + 1}_\${imgObj.name}\`;
+            if (imgObj.name) fileName = (index + 1) + "_" + imgObj.name;
             if (imgObj.type) contentType = imgObj.type;
             
             const rawBase64 = imgObj.base64 || imgObj.data || "";
@@ -139,63 +143,65 @@ function doPost(e) {
       });
     }
 
-    // 5. Ghi dữ liệu vào Google Sheet
+    // 6. Ghi dữ liệu vào Google Sheet
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     let sheet = ss.getSheetByName(SHEET_NAME);
     if (!sheet) {
       sheet = ss.insertSheet(SHEET_NAME);
     }
 
-    // Tạo tiêu đề đẹp nếu sheet trống
+    // Tạo dòng tiêu đề đúng 9 cột của bạn nếu sheet đang trống
     if (sheet.getLastRow() === 0) {
       const headers = [
-        "Thời Gian Gửi",
-        "Tên Zalo Khách",
-        "Số Điện Thoại",
-        "Loại Sản Phẩm",
-        "Nội Dung Cần In",
-        "Hạn Nhận Hàng",
-        "Ghi Chú & Thiết Kế",
-        "Link Ảnh Drive",
-        "Số Lượng Ảnh",
-        "Trạng Thái"
+        "Thời gian",
+        "Tên Zalo",
+        "SĐT",
+        "Sản phẩm",
+        "Lời chúc / Ghi chú",
+        "Hình thức nhận hàng",
+        "Link Drive ảnh",
+        "Hạn nhận hàng",
+        "Trạng thái"
       ];
       sheet.appendRow(headers);
       const headerRange = sheet.getRange(1, 1, 1, headers.length);
-      headerRange.setBackground("#2563EB");
+      headerRange.setBackground("#FF2A5F");
       headerRange.setFontColor("#FFFFFF");
       headerRange.setFontWeight("bold");
       headerRange.setHorizontalAlignment("center");
       sheet.setFrozenRows(1);
     }
 
-    // Thêm ký tự ' trước SĐT để giữ số 0 đầu
-    const formattedPhone = "'" + phone;
-    const defaultStatus = "Chờ xử lý";
+    // Thêm ký tự ' trước SĐT để Google Sheet giữ nguyên số 0 đầu tiên
+    const formattedPhone = phone ? ("'" + phone) : "";
+    const defaultStatus = "Mới nhận";
 
+    // Chuẩn bị dòng dữ liệu đúng 9 cột (A -> I):
+    // A: Thời gian | B: Tên Zalo | C: SĐT | D: Sản phẩm | E: Lời chúc / Ghi chú | F: Hình thức nhận hàng | G: Link Drive ảnh | H: Hạn nhận hàng | I: Trạng thái
     const rowData = [
-      displayTimestamp,
-      zaloName,
-      formattedPhone,
-      product,
-      printContent,
-      deadline,
-      notes,
-      folderUrl,
-      savedImagesCount,
-      defaultStatus
+      displayTimestamp,     // Cột A: Thời gian
+      zaloName,             // Cột B: Tên Zalo
+      formattedPhone,       // Cột C: SĐT
+      product,              // Cột D: Sản phẩm
+      customRequest,        // Cột E: Lời chúc / Ghi chú
+      deliveryMethodText,   // Cột F: Hình thức nhận hàng
+      folderUrl,            // Cột G: Link Drive ảnh
+      deadline,             // Cột H: Hạn nhận hàng
+      defaultStatus         // Cột I: Trạng thái
     ];
 
     sheet.appendRow(rowData);
 
-    // Trả về JSON thành công
+    // Trả về kết quả JSON thành công
     return createJsonResponse({
       status: "success",
-      message: "Đã gửi thông tin đơn hàng thành công! Shop sẽ liên hệ gửi bản demo qua Zalo sớm nhất.",
+      message: "Đã gửi thông tin đơn hàng thành công!",
       data: {
         zaloName: zaloName,
         phone: phone,
         product: product,
+        deliveryMethod: deliveryMethodText,
+        folderName: folderName,
         folderUrl: folderUrl,
         savedImages: savedImagesCount,
         timestamp: displayTimestamp
@@ -214,18 +220,18 @@ function doPost(e) {
 }
 
 /**
- * Xử lý yêu cầu GET
+ * Xử lý yêu cầu GET (kiểm tra trạng thái Web App)
  */
 function doGet(e) {
   return createJsonResponse({
     status: "success",
-    message: "Google Apps Script Backend cho Xưởng Quà Tặng đang hoạt động bình thường!",
+    message: "Google Apps Script Backend cho Xưởng Quà Tặng Dâu Dâu Shop đang hoạt động bình thường!",
     timestamp: new Date().toISOString()
   });
 }
 
 /**
- * Hàm Output JSON chuẩn CORS
+ * Hàm Output JSON chuẩn CORS cho trình duyệt
  */
 function createJsonResponse(data) {
   return ContentService.createTextOutput(JSON.stringify(data))
@@ -233,23 +239,19 @@ function createJsonResponse(data) {
 }
 
 /**
- * Chạy test để cấp quyền Drive & Sheets trong lần đầu
+ * Hàm chạy kiểm tra cấp quyền Google Drive & Google Sheets lần đầu
  */
 function testSetupPermissions() {
   Logger.log("Đang kiểm tra kết nối Google Drive và Sheets...");
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    Logger.log("Kết nối Google Sheet thành công: " + ss.getName());
+    Logger.log("✅ Kết nối Google Sheet thành công: " + ss.getName());
     
-    let folderName = "Root Drive";
-    if (PARENT_FOLDER_ID && PARENT_FOLDER_ID !== "YOUR_GOOGLE_DRIVE_FOLDER_ID_HERE") {
-      const folder = DriveApp.getFolderById(PARENT_FOLDER_ID);
-      folderName = folder.getName();
-    }
-    Logger.log("Kết nối Google Drive thành công! Thư mục đích: " + folderName);
-    Logger.log("=> Đã cấp đủ quyền để triển khai Web App!");
+    const folder = DriveApp.getFolderById(PARENT_FOLDER_ID);
+    Logger.log("✅ Kết nối Google Drive thành công! Tên thư mục đích: " + folder.getName());
+    Logger.log("🎉 ĐÃ CẤP ĐỦ QUYỀN ĐỂ TRIỂN KHAI WEB APP!");
   } catch (e) {
-    Logger.log("Lưu ý: " + e.toString());
+    Logger.log("⚠️ Lỗi kiểm tra: " + e.toString());
   }
 }`;
 
