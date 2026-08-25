@@ -4,7 +4,7 @@ import {
   Send, Loader2, ShieldCheck, Phone, User, Tag, 
   MessageSquare, Calendar, Check, CheckCircle2,
   Truck, Store, MapPin, Plus, Trash2, Layers,
-  ShoppingBag, HelpCircle
+  ShoppingBag, HelpCircle, Info
 } from 'lucide-react';
 import { PRODUCT_CATEGORIES, DEFAULT_GAS_URL } from '../data/constants';
 import { UploadedImage, OrderFormData, OrderProductItem, SubmissionResponse } from '../types';
@@ -16,6 +16,8 @@ interface CustomerOrderFormProps {
 }
 
 const DRAFT_STORAGE_KEY = 'dau_dau_order_form_multi_draft_v2';
+const MAX_ITEMS_PER_ORDER = 3;
+const MAX_IMAGES_PER_ITEM = 8;
 
 const createDefaultItem = (index = 0): OrderProductItem => ({
   id: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7) + '_' + index,
@@ -42,6 +44,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
   const [phoneError, setPhoneError] = useState('');
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [todayMinDate, setTodayMinDate] = useState('');
+  const [limitAlertMessage, setLimitAlertMessage] = useState<string | null>(null);
 
   // Refs for hidden file inputs mapped by itemId
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
@@ -137,6 +140,10 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
   // 3. Quản lý danh sách món in (Items)
   const handleAddItem = () => {
+    if (items.length >= MAX_ITEMS_PER_ORDER) {
+      setLimitAlertMessage("Mỗi đơn tối đa 3 món để hệ thống hoạt động tốt nhất. Bạn vui lòng hoàn tất đơn này trước, sau đó gửi thêm đơn mới nhé!");
+      return;
+    }
     const newItem = createDefaultItem(items.length);
     const updated = [...items, newItem];
     setItems(updated);
@@ -186,10 +193,16 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     saveDraft(zaloName, phone, deliveryMethod, shippingAddress, deadline, updated);
   };
 
-  // 4. Xử lý tải và tối ưu ảnh cho từng món
+  // 4. Xử lý tải và tối ưu ảnh cho từng món (Tối đa 8 ảnh / món)
   const processFilesForItem = async (itemId: string, files: FileList | File[]) => {
     const targetItem = items.find(it => it.id === itemId);
     if (!targetItem) return;
+
+    const currentCount = targetItem.images.length;
+    if (currentCount >= MAX_IMAGES_PER_ITEM) {
+      setLimitAlertMessage("Tối đa 8 ảnh/Sản phẩm để đảm bảo  in rõ nét nhất. Nếu bạn in số lượng lớn/ghép nhiều ảnh, vui lòng liên hệ Zalo của Shop để được hỗ trợ chuyên sâu nhé!");
+      return;
+    }
 
     const validFiles: File[] = [];
     for (let i = 0; i < files.length; i++) {
@@ -204,11 +217,21 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
     if (validFiles.length === 0) return;
 
+    const remainingSlots = MAX_IMAGES_PER_ITEM - currentCount;
+    let filesToProcess = validFiles;
+
+    if (validFiles.length > remainingSlots) {
+      filesToProcess = validFiles.slice(0, remainingSlots);
+      setLimitAlertMessage("Tối đa 8 ảnh/Sản phẩm để đảm bảo  in rõ nét nhất. Nếu bạn in số lượng lớn/ghép nhiều ảnh, vui lòng liên hệ Zalo của Shop để được hỗ trợ chuyên sâu nhé!");
+    }
+
+    if (filesToProcess.length === 0) return;
+
     setOptimizingItemId(itemId);
     const newImages: UploadedImage[] = [];
 
     try {
-      for (const file of validFiles) {
+      for (const file of filesToProcess) {
         try {
           const result = await compressImageForA4Print(file, 2500, 0.88);
 
@@ -987,6 +1010,30 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           <span>Dâu Dâu Shop • Độc đáo - Chất Lượng - Tận Tâm</span>
         </p>
       </div>
+
+      {/* Modal Thông Báo Giới Hạn */}
+      {limitAlertMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-pink-100 animate-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 bg-pink-100 text-[#d10074] rounded-full flex items-center justify-center mx-auto mb-3.5 shadow-xs">
+              <Info className="w-7 h-7" />
+            </div>
+            <h4 className="text-base font-extrabold text-slate-800 mb-2">
+              Thông Báo
+            </h4>
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-5 font-medium">
+              {limitAlertMessage}
+            </p>
+            <button
+              type="button"
+              onClick={() => setLimitAlertMessage(null)}
+              className="w-full py-3 px-4 bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold rounded-2xl text-xs sm:text-sm shadow-xs transition-all cursor-pointer"
+            >
+              Đã hiểu
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

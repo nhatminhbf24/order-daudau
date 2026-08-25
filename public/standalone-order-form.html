@@ -305,8 +305,33 @@
     </div>
   </div>
 
+  <!-- Modal Thông Báo Giới Hạn -->
+  <div id="limitNoticeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-pink-100 animate-in zoom-in-95 duration-200">
+      <div class="w-14 h-14 bg-pink-100 text-[#d10074] rounded-full flex items-center justify-center mx-auto mb-3.5 shadow-xs text-2xl font-bold">
+        ℹ️
+      </div>
+      <h4 class="text-base font-extrabold text-slate-800 mb-2">
+        Thông Báo
+      </h4>
+      <p id="limitNoticeMessage" class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-5 font-medium">
+        -
+      </p>
+      <button 
+        type="button" 
+        onclick="closeLimitModal()"
+        class="w-full py-3 px-4 bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold rounded-2xl text-xs sm:text-sm shadow-xs transition-all cursor-pointer"
+      >
+        Đã hiểu
+      </button>
+    </div>
+  </div>
+
   <!-- JAVASCRIPT LOGIC -->
   <script>
+    const MAX_ITEMS_PER_ORDER = 3;
+    const MAX_IMAGES_PER_ITEM = 8;
+
     const PRODUCT_OPTIONS = [
       "☕ Ly sứ / Cốc đổi màu cảm ứng nhiệt",
       "🔑 Móc khóa (Mica / Gỗ khắc / Kim loại 2 mặt)",
@@ -322,6 +347,15 @@
 
     let currentDeliveryMethod = 'shop';
     let items = [];
+
+    function showLimitNotice(msg) {
+      document.getElementById('limitNoticeMessage').textContent = msg;
+      document.getElementById('limitNoticeModal').classList.remove('hidden');
+    }
+
+    function closeLimitModal() {
+      document.getElementById('limitNoticeModal').classList.add('hidden');
+    }
 
     // Helper: Tạo ID ngẫu nhiên
     function generateId() {
@@ -367,6 +401,11 @@
     }
 
     function addNewItem() {
+      if (items.length >= MAX_ITEMS_PER_ORDER) {
+        showLimitNotice("Mỗi đơn tối đa 3 món để hệ thống hoạt động tốt nhất. Bạn vui lòng hoàn tất đơn này trước, sau đó gửi thêm đơn mới nhé!");
+        return;
+      }
+
       const newItem = {
         id: generateId(),
         product: '',
@@ -561,8 +600,24 @@
       const it = items.find(i => i.id === itemId);
       if (!it || !files || files.length === 0) return;
 
-      Array.from(files).forEach(file => {
-        if (!file.type.startsWith('image/')) return;
+      const currentCount = it.images.length;
+      if (currentCount >= MAX_IMAGES_PER_ITEM) {
+        showLimitNotice("Tối đa 8 ảnh/Sản phẩm để đảm bảo  in rõ nét nhất. Nếu bạn in số lượng lớn/ghép nhiều ảnh, vui lòng liên hệ Zalo của Shop để được hỗ trợ chuyên sâu nhé!");
+        return;
+      }
+
+      const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+      if (validFiles.length === 0) return;
+
+      const remainingSlots = MAX_IMAGES_PER_ITEM - currentCount;
+      let filesToProcess = validFiles;
+
+      if (validFiles.length > remainingSlots) {
+        filesToProcess = validFiles.slice(0, remainingSlots);
+        showLimitNotice("Tối đa 8 ảnh/Sản phẩm để đảm bảo  in rõ nét nhất. Nếu bạn in số lượng lớn/ghép nhiều ảnh, vui lòng liên hệ Zalo của Shop để được hỗ trợ chuyên sâu nhé!");
+      }
+
+      filesToProcess.forEach(file => {
         const reader = new FileReader();
         reader.onload = (e) => {
           it.images.push({
