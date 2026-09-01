@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Upload, X, Image as ImageIcon, Sparkles, AlertCircle, 
+  Upload, X, Image as ImageIcon, Sparkles, AlertCircle, AlertTriangle,
   Send, Loader2, ShieldCheck, Phone, User, Tag, 
   MessageSquare, Calendar, Check, CheckCircle2,
   Truck, Store, MapPin, Plus, Trash2, Layers,
@@ -46,6 +46,10 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
   const [todayMinDate, setTodayMinDate] = useState('');
   const [limitAlertMessage, setLimitAlertMessage] = useState<string | null>(null);
   const [showQuickGuide, setShowQuickGuide] = useState(true);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+  const isSubmittedRef = useRef(false);
+  const bypassBackTrapRef = useRef(false);
 
   // Refs for auto-scrolling to missing sections
   const zaloInputRef = useRef<HTMLInputElement | null>(null);
@@ -91,6 +95,45 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       console.warn('Lỗi đọc bản nháp localStorage:', err);
     }
   }, []);
+
+  // Thiết lập cảnh báo chống vô tình thoát trang khi dùng Zalo browser hoặc bấm nút quay lại trên điện thoại
+  useEffect(() => {
+    try {
+      window.history.pushState({ orderFormSession: true }, '', window.location.href);
+    } catch (e) {}
+
+    const handlePopState = () => {
+      if (isSubmittedRef.current || bypassBackTrapRef.current) {
+        return;
+      }
+
+      // Giữ lại state trong history để chặn thoát ngay lập tức
+      try {
+        window.history.pushState({ orderFormSession: true }, '', window.location.href);
+      } catch (e) {}
+
+      // Mở modal cảnh báo thoát
+      setShowExitConfirm(true);
+    };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isSubmittedRef.current || bypassBackTrapRef.current) return;
+      const hasAnyData = zaloName.trim() !== '' || phone.trim() !== '' || shippingAddress.trim() !== '' || items.some(it => (it.images && it.images.length > 0) || it.product || it.customRequest);
+      if (hasAnyData) {
+        e.preventDefault();
+        e.returnValue = 'Bạn đang điền dở đơn hàng, bạn có chắc muốn rời đi không?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [zaloName, phone, shippingAddress, items]);
 
   // 2. Tự động lưu bản nháp (không lưu ảnh base64 để tránh đầy localStorage)
   const saveDraft = (
@@ -535,6 +578,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
   };
 
   const resetForm = () => {
+    isSubmittedRef.current = true;
     setItems([createDefaultItem(0)]);
     setRestoredDraft(false);
   };
@@ -1084,6 +1128,48 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             >
               Đã hiểu
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Cảnh Báo Khi Khách Bấm Quay Lại / Thoát Trang Zalo */}
+      {showExitConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-pink-100 animate-in zoom-in-95 duration-200 relative overflow-hidden">
+            <div className="w-14 h-14 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3.5 shadow-xs">
+              <AlertTriangle className="w-7 h-7" />
+            </div>
+            <h4 className="text-lg font-extrabold text-slate-900 mb-2">
+              Bạn có muốn rời khỏi trang?
+            </h4>
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-5 font-medium">
+              Bạn đang điền dở thông tin đơn hàng và ảnh. Nếu rời đi lúc này, đơn hàng sẽ chưa được gửi đến đội ngũ thiết kế của Shop đâu nhé!
+            </p>
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowExitConfirm(false);
+                  try {
+                    window.history.pushState({ orderFormSession: true }, '', window.location.href);
+                  } catch (e) {}
+                }}
+                className="w-full py-3.5 px-4 bg-gradient-to-r from-[#d10074] via-[#e60080] to-[#d10074] text-white font-extrabold rounded-2xl text-sm shadow-md shadow-pink-500/25 hover:brightness-110 active:scale-[0.99] transition-all cursor-pointer border border-pink-400"
+              >
+                Ở LẠI TIẾP TỤC ĐIỀN ĐƠN
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  bypassBackTrapRef.current = true;
+                  setShowExitConfirm(false);
+                  window.history.go(-2);
+                }}
+                className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold rounded-2xl text-xs transition-all cursor-pointer"
+              >
+                Vẫn muốn thoát khỏi trang
+              </button>
+            </div>
           </div>
         </div>
       )}

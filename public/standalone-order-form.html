@@ -373,6 +373,37 @@
     </div>
   </div>
 
+  <!-- Modal Cảnh Báo Khi Khách Bấm Quay Lại / Thoát Trang Zalo -->
+  <div id="exitConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-pink-100 animate-in zoom-in-95 duration-200 relative overflow-hidden">
+      <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3.5 shadow-xs text-2xl font-bold">
+        ⚠️
+      </div>
+      <h4 class="text-lg font-extrabold text-slate-900 mb-2">
+        Bạn có muốn rời khỏi trang?
+      </h4>
+      <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-5 font-medium">
+        Bạn đang điền dở thông tin đơn hàng và ảnh. Nếu rời đi lúc này, đơn hàng sẽ chưa được gửi đến đội ngũ thiết kế của Shop đâu nhé!
+      </p>
+      <div class="space-y-2.5">
+        <button
+          type="button"
+          onclick="closeExitModalAndStay()"
+          class="w-full py-3.5 px-4 bg-gradient-to-r from-[#d10074] via-[#e60080] to-[#d10074] text-white font-extrabold rounded-2xl text-sm shadow-md shadow-pink-500/25 hover:brightness-110 active:scale-[0.99] transition-all cursor-pointer border border-pink-400"
+        >
+          Ở LẠI TIẾP TỤC ĐIỀN ĐƠN
+        </button>
+        <button
+          type="button"
+          onclick="allowExitAndLeave()"
+          class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold rounded-2xl text-xs transition-all cursor-pointer"
+        >
+          Vẫn muốn thoát khỏi trang
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- JAVASCRIPT LOGIC -->
   <script>
     const MAX_ITEMS_PER_ORDER = 3;
@@ -393,6 +424,47 @@
 
     let currentDeliveryMethod = 'shop';
     let items = [];
+    let isOrderSubmitted = false;
+    let bypassBackTrap = false;
+
+    // Chống vô tình thoát trang khi dùng Zalo Browser hoặc bấm nút quay lại trên điện thoại
+    try {
+      window.history.pushState({ formSession: true }, '', window.location.href);
+    } catch (e) {}
+
+    window.addEventListener('popstate', function (e) {
+      if (isOrderSubmitted || bypassBackTrap) return;
+
+      try {
+        window.history.pushState({ formSession: true }, '', window.location.href);
+      } catch (err) {}
+
+      document.getElementById('exitConfirmModal')?.classList.remove('hidden');
+    });
+
+    window.addEventListener('beforeunload', function (e) {
+      if (isOrderSubmitted || bypassBackTrap) return;
+      const hasZalo = document.getElementById('zaloName')?.value.trim();
+      const hasImages = items.some(i => i.images && i.images.length > 0);
+      if (hasZalo || hasImages) {
+        e.preventDefault();
+        e.returnValue = 'Bạn đang điền dở đơn hàng, bạn có chắc muốn rời đi không?';
+        return e.returnValue;
+      }
+    });
+
+    function closeExitModalAndStay() {
+      document.getElementById('exitConfirmModal')?.classList.add('hidden');
+      try {
+        window.history.pushState({ formSession: true }, '', window.location.href);
+      } catch (e) {}
+    }
+
+    function allowExitAndLeave() {
+      bypassBackTrap = true;
+      document.getElementById('exitConfirmModal')?.classList.add('hidden');
+      window.history.go(-2);
+    }
 
     function showLimitNotice(msg) {
       document.getElementById('limitNoticeMessage').textContent = msg;
@@ -903,6 +975,7 @@
     }
 
     function showSuccessModal(data) {
+      isOrderSubmitted = true;
       const submittingModal = document.getElementById('submittingModal');
       if (submittingModal) submittingModal.classList.add('hidden');
 
