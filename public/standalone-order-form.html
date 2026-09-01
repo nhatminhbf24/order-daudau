@@ -17,14 +17,19 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <!-- Google Fonts: Quicksand & Comfortaa & Nunito (Tròn xoe, siêu dễ thương, chuẩn tiếng Việt cho quà tặng) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&family=Nunito:wght@500;600;700;800;900&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
   
   <style>
+    * {
+      font-family: 'Quicksand', 'Nunito', 'Comfortaa', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+    h1, h2, h3, .brand-font {
+      font-family: 'Comfortaa', 'Quicksand', 'Nunito', sans-serif !important;
+    }
     body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
     .custom-scroll::-webkit-scrollbar {
@@ -61,7 +66,7 @@
       </div>
       <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2 text-[#d10074]">Gửi Nội Dung Thiết Kế</h1>
       <p class="text-slate-600 text-sm max-w-sm mx-auto leading-relaxed font-medium">
-        Bạn hãy điền đủ thông tin, đội ngũ thiết kế sẽ gửi bản demo qua Zalo cho bạn duyệt trước khi in nhé
+        Bạn hãy điền đủ thông tin, đội thiết kế sẽ gửi bản demo qua Zalo cho bạn duyệt nhé.
       </p>
     </div>
   </header>
@@ -69,7 +74,7 @@
   <!-- Main Container -->
   <main class="max-w-lg mx-auto px-4 -mt-8 relative z-20">
     <div class="bg-white rounded-3xl shadow-xl shadow-rose-100/60 border border-pink-100 p-5 sm:p-7">
-      
+
       <!-- Banner khôi phục bản nháp -->
       <div id="restoredDraftBanner" class="hidden mb-4 p-3 bg-pink-50 border border-pink-200 rounded-xl flex items-center justify-between gap-2 text-xs text-pink-900">
         <div class="flex items-center gap-2">
@@ -85,31 +90,27 @@
 
       <form id="orderForm" class="space-y-5" onsubmit="handleSubmitOrder(event)">
         
-        <!-- 1. Tên Nick Zalo của bạn -->
-        <div>
-          <label for="zaloName" class="block text-sm font-semibold text-slate-800 mb-1.5">
-            Tên Nick Zalo của bạn <span class="text-rose-500">*</span>
+        <!-- 1. Tên Zalo là gì: -->
+        <div class="p-4 rounded-2xl bg-pink-50/30 border border-pink-200/60">
+          <label for="zaloName" class="block text-sm sm:text-base font-extrabold text-slate-800 mb-2">
+            Bước 1: Tên Zalo là gì: <span class="text-rose-500">*</span>
           </label>
           <input 
             type="text" 
             id="zaloName" 
             name="zaloName" 
             required
-            placeholder="VD: Nguyễn Văn A (Tên Zalo đang chat với Shop)"
-            class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
+            placeholder=""
+            class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
             oninput="saveDraft()"
           >
-          <p class="text-xs text-slate-400 mt-1">Giúp Shop đối chiếu nhanh với đoạn chat Zalo</p>
         </div>
 
-        <!-- 2. DANH SÁCH SẢN PHẨM -->
-        <div class="space-y-3 pt-1 border-t border-pink-100">
-          <div class="flex items-center gap-2 pt-2">
-            <span class="w-6 h-6 rounded-lg bg-pink-100 text-[#d10074] flex items-center justify-center font-bold text-xs">
-              🏷️
-            </span>
+        <!-- 2. DANH SÁCH SẢN PHẨM & TẢI ẢNH -->
+        <div class="space-y-3 pt-1">
+          <div class="border-b border-pink-100 pb-2.5">
             <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
-              Danh Sách Sản Phẩm
+              Bước 2: Chọn Sản Phẩm và Tải Ảnh
             </h3>
           </div>
 
@@ -131,9 +132,9 @@
 
         <!-- 3. Hình thức nhận hàng -->
         <div class="pt-2 border-t border-pink-100">
-          <label class="block text-sm font-semibold text-slate-800 mb-2">
-            Hình thức nhận hàng toàn bộ đơn <span class="text-rose-500">*</span>
-          </label>
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900 mb-2">
+            Bước 3: Hình Thức Nhận Hàng
+          </h3>
           <div class="grid grid-cols-2 gap-2.5">
             <button
               type="button"
@@ -174,8 +175,8 @@
                 type="tel" 
                 id="phone" 
                 name="phone" 
-                placeholder="VD: 0912345678"
-                class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all placeholder:text-slate-400"
+                placeholder=""
+                class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all"
                 oninput="saveDraft()"
               >
             </div>
@@ -188,8 +189,8 @@
                 type="text" 
                 id="shippingAddress" 
                 name="shippingAddress" 
-                placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."
-                class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all placeholder:text-slate-400"
+                placeholder=""
+                class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all"
                 oninput="saveDraft()"
               >
             </div>
@@ -198,8 +199,8 @@
 
         <!-- 4. Hạn chót bạn cần nhận hàng -->
         <div>
-          <label for="deadline" class="block text-sm font-semibold text-slate-800 mb-1.5">
-            Hạn chót bạn cần nhận hàng
+          <label for="deadline" class="block text-sm font-bold text-slate-800 mb-1.5">
+            Hạn chót bạn cần nhận hàng là khi nào:
           </label>
           <input 
             type="date" 
@@ -208,7 +209,21 @@
             class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
             oninput="saveDraft()"
           >
-          <p class="text-xs text-slate-400 mt-1">Shop sẽ chủ động sắp xếp lịch in kịp ngày cho bạn.</p>
+        </div>
+
+        <!-- LỜI NHẮC NỔI BẬT ĐỂ KHÁCH BẤM NÚT -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-pink-500/10 via-[#d10074]/15 to-pink-500/10 border-2 border-[#d10074]/40 text-center space-y-2">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-full text-xs font-extrabold text-[#d10074] shadow-xs border border-pink-200">
+            ✨ BƯỚC CUỐI CÙNG
+          </div>
+          <p class="text-xs sm:text-sm text-slate-700 font-bold">
+            👉 Kiểm tra lại thông tin và bấm nút màu hồng bên dưới nhé!
+          </p>
+          <div>
+            <span id="itemsSummaryBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 border border-pink-200 text-[#d10074] text-xs sm:text-sm font-extrabold shadow-2xs">
+              🎁 1 Món In - 0 Ảnh
+            </span>
+          </div>
         </div>
 
         <!-- Nút Gửi Thông Tin -->
@@ -216,12 +231,12 @@
           <button 
             type="submit" 
             id="btnSubmit" 
-            class="w-full py-3.5 px-6 rounded-2xl bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold text-sm sm:text-base shadow-sm hover:shadow-md hover:shadow-pink-500/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+            class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[#d10074] via-[#e60080] to-[#d10074] hover:brightness-110 active:scale-[0.99] text-white font-extrabold text-base sm:text-lg shadow-lg shadow-pink-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer border border-pink-400"
           >
-            <svg id="btnSubmitIcon" class="w-5 h-5 text-[#d10074]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg id="btnSubmitIcon" class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
             </svg>
-            <span id="btnSubmitText">Gửi Yêu Cầu Thiết Kế (1 món in • 0 ảnh)</span>
+            <span id="btnSubmitText">BẤM VÀO ĐÂY</span>
           </button>
         </div>
 
@@ -229,7 +244,7 @@
     </div>
 
     <!-- Security note -->
-    <div class="text-center mt-5 text-xs text-slate-500 space-y-1.5">
+    <div class="text-center mt-5 mb-8 text-xs text-slate-500 space-y-1.5">
       <p class="flex items-center justify-center gap-1.5 font-medium text-slate-600">
         <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
@@ -594,8 +609,7 @@
                   📷
                 </div>
                 <div class="text-left">
-                  <p class="text-xs font-bold text-slate-800">Bấm để tải ảnh lên</p>
-                  <p class="text-[10px] text-slate-400">Ưu tiên ảnh gốc sắc nét</p>
+                  <p class="text-xs sm:text-sm font-extrabold text-slate-800">👉 Bấm vào đây để chọn ảnh từ máy</p>
                 </div>
               </div>
 
@@ -674,17 +688,17 @@
     }
 
     function updateSummary() {
-      const totalItems = items.reduce((acc, it) => acc + (it.quantity || 1), 0);
+      const totalItems = items.length;
       const totalImages = items.reduce((acc, it) => acc + (it.images?.length || 0), 0);
 
       const badge = document.getElementById('itemsSummaryBadge');
       if (badge) {
-        badge.textContent = `${items.length} món in • ${totalImages} ảnh`;
+        badge.innerHTML = `🎁 ${totalItems} Món In - ${totalImages} Ảnh`;
       }
-      
+
       const submitText = document.getElementById('btnSubmitText');
       if (submitText) {
-        submitText.textContent = `Gửi Yêu Cầu Thiết Kế (${items.length} món in • ${totalImages} ảnh)`;
+        submitText.textContent = 'BẤM VÀO ĐÂY';
       }
     }
 
@@ -704,6 +718,7 @@
           }))
         };
         localStorage.setItem('dau_dau_html_draft_v2', JSON.stringify(draft));
+        updateSummary();
       } catch (e) {}
     }
 
@@ -745,29 +760,39 @@
       items = [];
       addNewItem();
       document.getElementById('restoredDraftBanner').classList.add('hidden');
+      updateSummary();
     }
 
     async function handleSubmitOrder(e) {
-      e.preventDefault();
+      if (e && e.preventDefault) e.preventDefault();
 
-      const zaloName = document.getElementById('zaloName').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const shippingAddress = document.getElementById('shippingAddress').value.trim();
+      const zaloInput = document.getElementById('zaloName');
+      const zaloName = zaloInput.value.trim();
+      const phoneInput = document.getElementById('phone');
+      const phone = phoneInput.value.trim();
+      const shippingAddressInput = document.getElementById('shippingAddress');
+      const shippingAddress = shippingAddressInput.value.trim();
       const deadline = document.getElementById('deadline').value.trim();
 
       if (!zaloName) {
-        alert('Vui lòng nhập Tên Nick Zalo để Shop đối chiếu!');
+        zaloInput.focus();
+        zaloInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showLimitNotice('👉 Bước 1: Bạn vui lòng nhập Tên Nick Zalo đang chat với Shop nhé!');
         return;
       }
 
       if (currentDeliveryMethod === 'home') {
         const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
         if (!phoneRegex.test(phone)) {
-          alert('Vui lòng nhập đúng số điện thoại nhận hàng (10 chữ số)!');
+          phoneInput.focus();
+          phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          showLimitNotice('Vui lòng nhập đúng số điện thoại nhận hàng (10 chữ số)!');
           return;
         }
         if (!shippingAddress) {
-          alert('Vui lòng nhập Địa chỉ nhận hàng!');
+          shippingAddressInput.focus();
+          shippingAddressInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          showLimitNotice('Vui lòng nhập Địa chỉ nhận hàng để Shop giao tận nơi!');
           return;
         }
       }
@@ -776,11 +801,15 @@
       for (let i = 0; i < items.length; i++) {
         const it = items[i];
         if (!it.product) {
-          alert(`Vui lòng chọn loại sản phẩm cho Món #${i + 1}!`);
+          const cardEl = document.getElementById('card_' + it.id);
+          if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          showLimitNotice(`👉 Bước 2: Bạn hãy chọn loại sản phẩm cần in cho Món #${i + 1} nhé!`);
           return;
         }
         if (!it.images || it.images.length === 0) {
-          alert(`Vui lòng tải lên ít nhất 1 ảnh in cho Món #${i + 1} (${it.product})!`);
+          const cardEl = document.getElementById('card_' + it.id);
+          if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          showLimitNotice(`👉 Bước 2: Bạn hãy bấm "Tải ảnh lên" để chọn ít nhất 1 ảnh in cho Món #${i + 1} (${it.product}) nhé!`);
           return;
         }
       }

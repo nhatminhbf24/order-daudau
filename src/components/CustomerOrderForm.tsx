@@ -4,7 +4,7 @@ import {
   Send, Loader2, ShieldCheck, Phone, User, Tag, 
   MessageSquare, Calendar, Check, CheckCircle2,
   Truck, Store, MapPin, Plus, Trash2, Layers,
-  ShoppingBag, HelpCircle, Info
+  ShoppingBag, HelpCircle, Info, ArrowDown, ChevronRight
 } from 'lucide-react';
 import { PRODUCT_CATEGORIES, DEFAULT_GAS_URL } from '../data/constants';
 import { UploadedImage, OrderFormData, OrderProductItem, SubmissionResponse } from '../types';
@@ -45,6 +45,13 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [todayMinDate, setTodayMinDate] = useState('');
   const [limitAlertMessage, setLimitAlertMessage] = useState<string | null>(null);
+  const [showQuickGuide, setShowQuickGuide] = useState(true);
+
+  // Refs for auto-scrolling to missing sections
+  const zaloInputRef = useRef<HTMLInputElement | null>(null);
+  const itemsSectionRef = useRef<HTMLDivElement | null>(null);
+  const deliverySectionRef = useRef<HTMLDivElement | null>(null);
+  const mainSubmitBtnRef = useRef<HTMLButtonElement | null>(null);
 
   // Refs for hidden file inputs mapped by itemId
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
@@ -200,7 +207,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
     const currentCount = targetItem.images.length;
     if (currentCount >= MAX_IMAGES_PER_ITEM) {
-      setLimitAlertMessage("Tối đa 8 ảnh/Sản phẩm để đảm bảo  in rõ nét nhất. Nếu bạn in số lượng lớn/ghép nhiều ảnh, vui lòng liên hệ Zalo của Shop để được hỗ trợ chuyên sâu nhé!");
+      setLimitAlertMessage("Tối đa 8 ảnh/Sản phẩm để đảm bảo in rõ nét nhất. Nếu bạn in số lượng lớn/ghép nhiều ảnh, vui lòng liên hệ Zalo của Shop để được hỗ trợ chuyên sâu nhé!");
       return;
     }
 
@@ -222,7 +229,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
     if (validFiles.length > remainingSlots) {
       filesToProcess = validFiles.slice(0, remainingSlots);
-      setLimitAlertMessage("Tối đa 8 ảnh/Sản phẩm để đảm bảo  in rõ nét nhất. Nếu bạn in số lượng lớn/ghép nhiều ảnh, vui lòng liên hệ Zalo của Shop để được hỗ trợ chuyên sâu nhé!");
+      setLimitAlertMessage("Tối đa 8 ảnh/Sản phẩm để đảm bảo in rõ nét nhất. Nếu bạn in số lượng lớn/ghép nhiều ảnh, vui lòng liên hệ Zalo của Shop để được hỗ trợ chuyên sâu nhé!");
     }
 
     if (filesToProcess.length === 0) return;
@@ -297,62 +304,61 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
     }));
   };
 
-  const formatSize = (bytes?: number) => {
-    if (!bytes || bytes <= 0) return '0 B';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+  // Tính toán tiến độ các bước & trạng thái kiểm tra (Step Validation Status)
+  const isStep1Done = Boolean(zaloName.trim());
+  const isAllItemsValid = items.every(it => Boolean(it.product && it.product.trim() && it.images && it.images.length > 0));
+  const isStep2Done = items.length > 0 && isAllItemsValid;
+  const isStep3Done = deliveryMethod === 'shop' 
+    ? true 
+    : Boolean(phone.trim() && !phoneError && shippingAddress.trim());
+  const isReadyToSubmit = isStep1Done && isStep2Done && isStep3Done;
 
   // Tổng số lượng món và tổng số ảnh
   const totalItemsCount = items.reduce((acc, it) => acc + (it.quantity || 1), 0);
   const totalImagesCount = items.reduce((acc, it) => acc + (it.images?.length || 0), 0);
 
-  // 5. Submit form
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validate Tên Zalo
-    if (!zaloName.trim()) {
-      alert('Vui lòng nhập Tên Nick Zalo để Shop đối chiếu tin nhắn!');
-      return;
+  // Cuộn mượt đến phần chưa điền để hỗ trợ khách
+  const scrollToMissingField = () => {
+    if (!isStep1Done) {
+      zaloInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      zaloInputRef.current?.focus();
+      return 'Vui lòng nhập Tên Nick Zalo để Shop nhận diện bạn nhé!';
     }
-
-    // Validate Giao hàng tại nhà
-    if (deliveryMethod === 'home') {
-      const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
-      if (!phoneRegex.test(phone.trim())) {
-        setPhoneError('Vui lòng nhập đúng số điện thoại nhận hàng (10 chữ số)');
-        return;
-      }
-      if (!shippingAddress.trim()) {
-        alert('Vui lòng nhập Địa chỉ nhận hàng để Shop giao hàng tận nơi!');
-        return;
-      }
-    } else {
-      if (phone.trim()) {
-        const phoneRegex = /^(0|84)(3|5|7|8|9)[0-9]{8}$/;
-        if (!phoneRegex.test(phone.trim())) {
-          setPhoneError('Vui lòng nhập đúng số điện thoại (10 chữ số)');
-          return;
-        }
-      }
-    }
-
-    // Validate từng món in
+    
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      const itemNum = i + 1;
-
-      if (!item.product || item.product.trim() === '') {
-        alert(`Vui lòng chọn Loại sản phẩm cần in cho Món #${itemNum}!`);
-        return;
+      if (!item.product) {
+        itemsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return `Vui lòng chọn loại sản phẩm cho Món #${i + 1}!`;
       }
-
       if (!item.images || item.images.length === 0) {
-        alert(`Vui lòng tải lên ít nhất 1 ảnh in cho Món #${itemNum} (${item.product})!`);
-        return;
+        itemsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return `Vui lòng bấm tải ảnh lên cho Món #${i + 1} (${item.product})!`;
       }
+    }
+
+    if (deliveryMethod === 'home') {
+      if (!phone.trim() || phoneError) {
+        deliverySectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return 'Vui lòng nhập số điện thoại nhận hàng hợp lệ!';
+      }
+      if (!shippingAddress.trim()) {
+        deliverySectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return 'Vui lòng nhập địa chỉ giao hàng tận nơi!';
+      }
+    }
+
+    return null;
+  };
+
+  // 5. Submit form
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    const missingMsg = scrollToMissingField();
+    if (missingMsg) {
+      alert(missingMsg);
+      return;
     }
 
     setIsSubmitting(true);
@@ -371,7 +377,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       deliveryMethod: deliveryLabel,
       shippingAddress: addressInfo,
       deadline: deadline.trim(),
-      // Danh sách chi tiết từng món
       items: items.map((it, idx) => ({
         id: it.id,
         index: idx + 1,
@@ -384,7 +389,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           base64: img.base64
         }))
       })),
-      // Backward compatibility fields
       product: items.map(it => `${it.quantity > 1 ? it.quantity + 'x ' : ''}${it.product}`).join(', '),
       customRequest: items.map((it, idx) => `[Món ${idx + 1} - ${it.product} (SL: ${it.quantity})]: ${it.customRequest || 'In theo ảnh'}`).join(' | '),
       images: allImages.map(img => ({
@@ -461,7 +465,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
         }
       }
 
-      // 3. Cập nhật lại bản nháp (giữ tên & thông tin nhận hàng, chỉ làm mới danh sách món)
+      // 3. Cập nhật lại bản nháp
       saveDraft(zaloName, phone, deliveryMethod, shippingAddress, deadline, [createDefaultItem(0)]);
 
       // 4. Hoàn tất và hiện bảng thông báo
@@ -536,24 +540,24 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto">
+    <div className="w-full max-w-xl mx-auto pb-24 sm:pb-28">
 
       {/* Main Card Container */}
       <div className="bg-white rounded-3xl shadow-xl shadow-rose-100/60 border border-pink-100 overflow-hidden">
         
         {/* Banner Top Header */}
-        <div className="bg-gradient-to-br from-[#fff0f6] via-[#ffe8f2] to-[#fff5f9] p-6 sm:p-7 relative overflow-hidden border-b border-pink-100">
+        <div className="bg-gradient-to-br from-[#fff0f6] via-[#ffe8f2] to-[#fff5f9] p-5 sm:p-7 relative overflow-hidden border-b border-pink-100">
           <div className="absolute -right-8 -top-8 w-40 h-40 bg-pink-200/40 rounded-full blur-2xl pointer-events-none"></div>
           
           <div className="inline-flex items-center gap-2 bg-white/90 shadow-xs px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-2.5 border border-pink-200 text-[#d10074]">
             DÂU DÂU SHOP QUÀ TẶNG IN HÌNH
           </div>
           
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-1.5 text-[#d10074]">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-1.5 text-[#d10074]">
             Gửi Nội Dung Thiết Kế
-          </h2>
+          </h1>
           <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-md font-medium">
-            Bạn hãy điền đủ thông tin, đội ngũ thiết kế sẽ gửi bản demo qua Zalo cho bạn duyệt trước khi in nhé
+            Bạn hãy điền đủ thông tin, đội thiết kế sẽ gửi bản demo qua Zalo cho bạn duyệt nhé.
           </p>
         </div>
 
@@ -562,7 +566,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
           <div className="mx-5 sm:mx-7 mt-4 p-3 bg-pink-50 border border-pink-200 rounded-xl flex items-center justify-between gap-2 text-xs text-pink-900 animate-in fade-in">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-pink-600 shrink-0" />
-              <span>Đã khôi phục dữ liệu khi bạn chuyển ứng dụng.</span>
+              <span>Đã khôi phục dữ liệu đã điền trước đó.</span>
             </div>
             <button
               type="button"
@@ -577,13 +581,14 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 sm:p-7 space-y-6">
 
-          {/* 1. Tên Nick Zalo của bạn */}
-          <div>
-            <label htmlFor="zaloName" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
-              <User className="w-4 h-4 text-pink-600" />
-              Tên Nick Zalo của bạn <span className="text-rose-500">*</span>
+          {/* BƯỚC 1: Tên Zalo là gì: */}
+          <div className="p-4 rounded-2xl bg-pink-50/30 border border-pink-200/60">
+            <label htmlFor="zaloName" className="block text-sm sm:text-base font-extrabold text-slate-800 mb-2">
+              Bước 1: Tên Zalo là gì: <span className="text-rose-500">*</span>
             </label>
+            
             <input 
+              ref={zaloInputRef}
               type="text" 
               id="zaloName" 
               name="zaloName" 
@@ -593,21 +598,17 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                 setZaloName(e.target.value);
                 saveDraft(e.target.value, phone, deliveryMethod, shippingAddress, deadline, items);
               }}
-              placeholder="VD: Nguyễn Văn A (Tên Zalo đang chat với Shop)"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
+              placeholder=""
+              className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all shadow-2xs"
             />
-            <p className="text-[11px] text-slate-400 mt-1">Giúp Shop đối chiếu nhanh với đoạn chat Zalo</p>
           </div>
 
-          {/* 2. DANH SÁCH SẢN PHẨM (MULTI-ITEMS SECTION) */}
-          <div className="space-y-4 pt-1">
-            <div className="flex items-center gap-2 border-b border-pink-100 pb-2">
-              <div className="w-6 h-6 rounded-lg bg-pink-100 text-[#d10074] flex items-center justify-center font-bold text-xs">
-                <Layers className="w-3.5 h-3.5" />
-              </div>
-              <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
-                Danh Sách Sản Phẩm
-              </h3>
+          {/* BƯỚC 2: DANH SÁCH SẢN PHẨM & TẢI ẢNH */}
+          <div ref={itemsSectionRef} className="space-y-4 pt-1">
+            <div className="border-b border-pink-100 pb-2.5">
+              <h2 className="text-sm sm:text-base font-extrabold text-slate-900">
+                Bước 2: Chọn Sản Phẩm và Tải Ảnh
+              </h2>
             </div>
 
             {/* Render từng món in */}
@@ -616,11 +617,16 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                 const itemNumber = index + 1;
                 const isOptimizingThisItem = optimizingItemId === item.id;
                 const isDraggingOverThisItem = dragOverItemId === item.id;
+                const isItemDone = Boolean(item.product && item.images.length > 0);
 
                 return (
                   <div 
                     key={item.id}
-                    className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-pink-50/40 via-white to-pink-50/20 border-2 border-pink-200/90 shadow-sm relative transition-all"
+                    className={`p-4 sm:p-5 rounded-2xl border-2 transition-all relative ${
+                      isItemDone 
+                        ? 'bg-gradient-to-b from-pink-50/40 via-white to-pink-50/20 border-pink-300/90 shadow-sm'
+                        : 'bg-white border-pink-200 shadow-2xs'
+                    }`}
                   >
                     {/* Item Header */}
                     <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-pink-100">
@@ -631,6 +637,11 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                         <span className="font-bold text-slate-800 text-sm">
                           Món #{itemNumber}: {item.product || 'Chưa chọn sản phẩm'}
                         </span>
+                        {isItemDone && (
+                          <span className="hidden sm:inline-flex text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full items-center gap-1">
+                            <Check className="w-3 h-3 stroke-[3]" /> Xong
+                          </span>
+                        )}
                       </div>
 
                       {items.length > 1 && (
@@ -654,15 +665,15 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                         <div className="sm:col-span-2">
                           <label className="flex items-center gap-1 text-xs font-bold text-slate-700 mb-1">
                             <Tag className="w-3.5 h-3.5 text-pink-600" />
-                            Loại sản phẩm <span className="text-rose-500">*</span>
+                            Loại sản phẩm cần in <span className="text-rose-500">*</span>
                           </label>
                           <select 
                             required
                             value={item.product}
                             onChange={(e) => handleUpdateItemField(item.id, 'product', e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl border border-pink-200 bg-white text-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all cursor-pointer font-medium"
+                            className="w-full px-3 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all cursor-pointer font-bold shadow-2xs"
                           >
-                            <option value="" disabled>-- Chọn sản phẩm cần in --</option>
+                            <option value="" disabled>-- Bấm để chọn sản phẩm --</option>
                             {PRODUCT_CATEGORIES.map(cat => (
                               <option key={cat.id} value={cat.name}>
                                 {cat.name}
@@ -677,11 +688,11 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                             <ShoppingBag className="w-3.5 h-3.5 text-pink-600" />
                             Số lượng
                           </label>
-                          <div className="flex items-center border border-pink-200 rounded-xl bg-white overflow-hidden">
+                          <div className="flex items-center border border-pink-200 rounded-xl bg-white overflow-hidden shadow-2xs">
                             <button
                               type="button"
                               onClick={() => handleQuantityChange(item.id, -1)}
-                              className="px-2.5 py-2 text-slate-600 hover:bg-pink-100 hover:text-pink-700 font-bold transition-colors cursor-pointer text-sm"
+                              className="px-3 py-2 text-slate-600 hover:bg-pink-100 hover:text-pink-700 font-extrabold transition-colors cursor-pointer text-sm"
                             >
                               -
                             </button>
@@ -696,7 +707,7 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                             <button
                               type="button"
                               onClick={() => handleQuantityChange(item.id, 1)}
-                              className="px-2.5 py-2 text-slate-600 hover:bg-pink-100 hover:text-pink-700 font-bold transition-colors cursor-pointer text-sm"
+                              className="px-3 py-2 text-slate-600 hover:bg-pink-100 hover:text-pink-700 font-extrabold transition-colors cursor-pointer text-sm"
                             >
                               +
                             </button>
@@ -709,14 +720,14 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                       <div>
                         <label className="flex items-center gap-1 text-xs font-bold text-slate-700 mb-1">
                           <MessageSquare className="w-3.5 h-3.5 text-pink-600" />
-                          Thêm chữ / Yêu cầu riêng cho Món #{itemNumber}
+                          Thêm chữ / Lời chúc / Yêu cầu riêng cho Món #{itemNumber}
                         </label>
                         <textarea 
                           rows={2}
                           value={item.customRequest}
                           onChange={(e) => handleUpdateItemField(item.id, 'customRequest', e.target.value)}
-                          placeholder={`VD: In chữ 'Happy Birthday Lan' | Cắt nền ghép hình trái tim, làm sáng da...`}
-                          className="w-full px-3 py-2 rounded-xl border border-pink-200 bg-white text-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all placeholder:text-slate-400 resize-none"
+                          placeholder={`VD: In chữ 'Happy Birthday Linh' | Cắt nền ghép hình trái tim, làm sáng da...`}
+                          className="w-full px-3 py-2 rounded-xl border border-pink-200 bg-white text-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all placeholder:text-slate-400 resize-none shadow-2xs"
                         />
                       </div>
 
@@ -727,8 +738,12 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                             <ImageIcon className="w-3.5 h-3.5 text-pink-600" />
                             Ảnh in cho Món #{itemNumber} <span className="text-rose-500">*</span>
                           </label>
-                          <span className="text-[11px] font-bold text-pink-700 bg-pink-100/80 px-2 py-0.5 rounded-md border border-pink-200">
-                            {item.images.length} ảnh đã chọn
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md border ${
+                            item.images.length > 0 
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                              : 'bg-rose-50 text-rose-700 border-rose-200'
+                          }`}>
+                            {item.images.length > 0 ? `Đã có ${item.images.length} ảnh` : 'Chưa có ảnh'}
                           </span>
                         </div>
 
@@ -744,12 +759,14 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                               processFilesForItem(item.id, e.dataTransfer.files);
                             }
                           }}
-                          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center relative group ${
+                          className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center relative group ${
                             isOptimizingThisItem 
                               ? 'border-pink-300 bg-pink-50/50 cursor-wait'
                               : isDraggingOverThisItem 
                                 ? 'border-pink-500 bg-pink-50/80 scale-[1.01]' 
-                                : 'border-pink-200 hover:border-pink-500 bg-white hover:bg-pink-50/40'
+                                : item.images.length === 0
+                                  ? 'border-pink-400 bg-pink-50/30 hover:bg-pink-50/60 hover:border-pink-600 ring-2 ring-pink-300/30'
+                                  : 'border-pink-200 hover:border-pink-500 bg-white hover:bg-pink-50/40'
                           }`}
                         >
                           <input 
@@ -768,23 +785,20 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                           />
 
                           {isOptimizingThisItem ? (
-                            <div className="flex flex-col items-center justify-center py-0.5">
-                              <Loader2 className="w-6 h-6 text-pink-600 animate-spin mb-1" />
+                            <div className="flex flex-col items-center justify-center py-1">
+                              <Loader2 className="w-7 h-7 text-pink-600 animate-spin mb-1.5" />
                               <p className="text-xs font-bold text-slate-800">
-                                Đang tải và tối ưu ảnh...
+                                Đang nén và giữ trọn độ nét ảnh...
                               </p>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-2 text-slate-700">
-                              <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-                                <Upload className="w-4 h-4" />
+                            <div className="flex items-center gap-3 text-slate-700 py-1">
+                              <div className="w-10 h-10 rounded-full bg-pink-100 text-[#d10074] flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-xs">
+                                <Upload className="w-5 h-5" />
                               </div>
                               <div className="text-left">
-                                <p className="text-xs font-bold text-slate-800">
-                                  Bấm để tải ảnh lên
-                                </p>
-                                <p className="text-[10px] text-slate-400">
-                                  Ưu tiên ảnh gốc sắc nét
+                                <p className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-[#d10074] transition-colors">
+                                  👉 Bấm vào đây để chọn ảnh từ máy
                                 </p>
                               </div>
                             </div>
@@ -793,27 +807,33 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
 
                         {/* Thumbnails preview của món */}
                         {item.images.length > 0 && (
-                          <div className="mt-2.5 grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1">
-                            {item.images.map((img) => (
-                              <div key={img.id} className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-xs">
-                                <img 
-                                  src={img.previewUrl} 
-                                  alt={img.name} 
-                                  className="w-full h-full object-cover"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRemoveImageFromItem(item.id, img.id);
-                                  }}
-                                  className="absolute top-1 right-1 w-5 h-5 bg-rose-600/90 text-white rounded-full flex items-center justify-center text-xs shadow hover:bg-rose-700 transition-colors cursor-pointer"
-                                  title="Xóa ảnh này"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ))}
+                          <div className="mt-2.5">
+                            <div className="text-[11px] text-slate-500 mb-1.5 font-medium flex items-center justify-between">
+                              <span>Ảnh đã chọn (bấm dấu x để xóa bớt):</span>
+                              <span className="text-emerald-700 font-bold">✓ Đã sẵn sàng in</span>
+                            </div>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 bg-pink-50/20 rounded-xl border border-pink-100">
+                              {item.images.map((img) => (
+                                <div key={img.id} className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-2xs">
+                                  <img 
+                                    src={img.previewUrl} 
+                                    alt={img.name} 
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRemoveImageFromItem(item.id, img.id);
+                                    }}
+                                    className="absolute top-1 right-1 w-5 h-5 bg-rose-600/90 hover:bg-rose-700 text-white rounded-full flex items-center justify-center text-xs shadow-md transition-colors cursor-pointer"
+                                    title="Xóa ảnh này"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
 
@@ -834,16 +854,18 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
                 <Plus className="w-4 h-4 stroke-[3]" />
               </div>
-              <span>Thêm Sản Phẩm Khác</span>
+              <span>+ Thêm Sản Phẩm Thứ {items.length + 1} (Nếu có)</span>
             </button>
           </div>
 
-          {/* 3. Hình thức nhận hàng (Giao hàng tại nhà -> có Số điện thoại & Địa chỉ) */}
-          <div className="pt-2 border-t border-pink-100">
-            <label className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-2">
-              <Truck className="w-4 h-4 text-pink-600" />
-              Hình thức nhận hàng toàn bộ đơn <span className="text-rose-500">*</span>
-            </label>
+          {/* BƯỚC 3: Hình thức nhận hàng */}
+          <div ref={deliverySectionRef} className="pt-3 border-t border-pink-100">
+            <div className="mb-2.5">
+              <h2 className="text-sm sm:text-base font-extrabold text-slate-900">
+                Bước 3: Hình Thức Nhận Hàng
+              </h2>
+            </div>
+
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
@@ -889,7 +911,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
             {/* Nếu chọn Giao hàng tại nhà -> Nhập Số điện thoại nhận hàng + Địa chỉ giao hàng */}
             {deliveryMethod === 'home' && (
               <div className="mt-3.5 space-y-3 p-3.5 rounded-2xl bg-pink-50/40 border border-pink-200/70 animate-in fade-in slide-in-from-top-1">
-                {/* Số điện thoại nhận hàng */}
                 <div>
                   <label htmlFor="phone" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
                     <Phone className="w-4 h-4 text-pink-600" />
@@ -902,8 +923,8 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                     required={deliveryMethod === 'home'}
                     value={phone}
                     onChange={(e) => handlePhoneChange(e.target.value)}
-                    placeholder="VD: 0912345678"
-                    className={`w-full px-3.5 py-2.5 rounded-xl border text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 transition-all placeholder:text-slate-400 ${
+                    placeholder=""
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 transition-all ${
                       phoneError 
                         ? 'border-rose-400 bg-rose-50/30 focus:ring-rose-500' 
                         : 'border-pink-200 bg-white focus:ring-pink-500 focus:border-transparent'
@@ -917,7 +938,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                   )}
                 </div>
 
-                {/* Địa chỉ giao hàng */}
                 <div>
                   <label htmlFor="shippingAddress" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
                     <MapPin className="w-4 h-4 text-pink-600" />
@@ -933,52 +953,67 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
                       setShippingAddress(e.target.value);
                       saveDraft(zaloName, phone, deliveryMethod, e.target.value, deadline, items);
                     }}
-                    placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-slate-400"
+                    placeholder=""
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 bg-white text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
             )}
+
+            {/* Hạn chót bạn cần nhận hàng */}
+            <div className="mt-3">
+              <label htmlFor="deadline" className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
+                <Calendar className="w-4 h-4 text-pink-600" />
+                Hạn chót bạn cần nhận hàng là khi nào:
+              </label>
+              <input 
+                type="date" 
+                id="deadline" 
+                name="deadline" 
+                min={todayMinDate}
+                value={deadline}
+                onChange={(e) => {
+                  setDeadline(e.target.value);
+                  saveDraft(zaloName, phone, deliveryMethod, shippingAddress, e.target.value, items);
+                }}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
+              />
+            </div>
           </div>
 
-          {/* 4. Hạn chót bạn cần nhận hàng */}
-          <div>
-            <label htmlFor="deadline" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
-              <Calendar className="w-4 h-4 text-pink-600" />
-              Hạn chót bạn cần nhận hàng
-            </label>
-            <input 
-              type="date" 
-              id="deadline" 
-              name="deadline" 
-              min={todayMinDate}
-              value={deadline}
-              onChange={(e) => {
-                setDeadline(e.target.value);
-                saveDraft(zaloName, phone, deliveryMethod, shippingAddress, e.target.value, items);
-              }}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200/80 bg-pink-50/20 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all cursor-pointer"
-            />
-            <p className="text-[11px] text-slate-400 mt-1">Shop sẽ chủ động sắp xếp lịch in kịp ngày cho bạn.</p>
+          {/* LỜI NHẮC NỔI BẬT ĐỂ KHÁCH BẤM NÚT */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-pink-500/10 via-[#d10074]/15 to-pink-500/10 border-2 border-[#d10074]/40 text-center animate-in fade-in space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-full text-xs font-extrabold text-[#d10074] shadow-xs border border-pink-200">
+              <Sparkles className="w-3.5 h-3.5" /> BƯỚC CUỐI CÙNG
+            </div>
+            <p className="text-xs sm:text-sm text-slate-700 font-bold">
+              👉 Kiểm tra lại thông tin và bấm nút màu hồng bên dưới nhé!
+            </p>
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 border border-pink-200 text-[#d10074] text-xs sm:text-sm font-extrabold shadow-2xs">
+                🎁 {items.length} Món In - {totalImagesCount} Ảnh
+              </span>
+            </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="pt-2">
+          {/* Main Submit Button (In-page) */}
+          <div className="pt-1">
             <button 
+              ref={mainSubmitBtnRef}
               type="submit" 
               disabled={isSubmitting || optimizingItemId !== null}
-              className="w-full py-3.5 px-6 rounded-2xl bg-[#feeaf2] hover:bg-[#fedbe9] active:bg-[#fccfe1] text-[#d10074] border-2 border-[#d10074] font-extrabold text-sm sm:text-base shadow-sm hover:shadow-md hover:shadow-pink-500/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[#d10074] via-[#e60080] to-[#d10074] hover:brightness-110 active:scale-[0.99] text-white font-extrabold text-base sm:text-lg shadow-lg shadow-pink-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed border border-pink-400"
             >
               {isSubmitting ? (
-                 <>
-                  <Loader2 className="w-5 h-5 animate-spin text-[#d10074]" />
-                  <span>Đang gửi {items.length} món in ({totalImagesCount} ảnh)...</span>
-                </>
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-6 h-6 animate-spin text-white" />
+                  <span>Đang gửi...</span>
+                </div>
               ) : (
-                <>
-                  <Send className="w-5 h-5 text-[#d10074]" />
-                  <span>Gửi Yêu Cầu Thiết Kế ({items.length} món in • {totalImagesCount} ảnh)</span>
-                </>
+                <div className="flex items-center gap-2">
+                  <Send className="w-5 h-5 text-white" />
+                  <span>BẤM VÀO ĐÂY</span>
+                </div>
               )}
             </button>
           </div>
@@ -987,10 +1022,10 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       </div>
 
       {/* Security and trust footer */}
-      <div className="text-center mt-5 text-xs text-slate-500 space-y-1.5">
+      <div className="text-center mt-5 mb-8 text-xs text-slate-500 space-y-1.5">
         <p className="flex items-center justify-center gap-1.5 font-medium text-slate-600">
           <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-          Thông tin của bạn luôn được bảo mật an toàn
+          Thông tin và ảnh của bạn luôn được bảo mật an toàn
         </p>
         <p className="flex items-center justify-center gap-1.5 text-slate-400 font-medium">
           <CheckCircle2 className="w-3.5 h-3.5 text-pink-500 shrink-0" />
@@ -1002,10 +1037,8 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
       {isSubmitting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-pink-100 animate-in zoom-in-95 duration-200 relative overflow-hidden">
-            {/* Thanh hiệu ứng gradient chuyển động */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-pink-300 via-[#d10074] to-pink-300 animate-pulse"></div>
 
-            {/* Vòng quay loading */}
             <div className="relative w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <div className="absolute inset-0 rounded-full border-4 border-pink-100 border-t-[#d10074] animate-spin"></div>
               <div className="w-10 h-10 rounded-full bg-pink-50 text-[#d10074] flex items-center justify-center font-bold shadow-inner">
@@ -1013,7 +1046,6 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               </div>
             </div>
 
-            {/* Tiêu đề & Nội dung theo yêu cầu */}
             <h4 className="text-lg font-extrabold text-slate-800 mb-2">
               Đơn hàng đang được gửi đi...
             </h4>
@@ -1021,12 +1053,10 @@ export const CustomerOrderForm: React.FC<CustomerOrderFormProps> = ({
               Đang xử lý ảnh chất lượng cao...để giữ trọn độ nét ảnh của bạn khi đến xưởng. Xin vui lòng đợi trong giây lát nhé!
             </p>
 
-            {/* Thanh tiến trình mô phỏng trạng thái hoạt động */}
             <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden mb-3.5">
               <div className="h-full bg-gradient-to-r from-pink-500 to-[#d10074] rounded-full animate-[progress_2.5s_ease-in-out_infinite] w-3/4"></div>
             </div>
 
-            {/* Dòng cảnh báo nhỏ mờ bên dưới */}
             <p className="text-[11px] text-slate-400 font-normal italic">
               (Vui lòng không tải lại trang hoặc bấm quay lại)
             </p>
